@@ -147,15 +147,44 @@ const DEFAULT_SKILLS: Skill[] = [
 ];
 
 // ===== Helper: get image URL =====
-const getImageUrl = (imagePath?: string): string => {
+// ===== Helper: get image URL - FIXED =====
+const getImageUrl = (imagePath?: string | any): string => {
   if (!imagePath) return '/images/placeholder.jpg';
-  if (imagePath.startsWith('data:')) return imagePath;
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/images/')) {
-    const base = process.env.NEXT_PUBLIC_API_URL || '';
-    return `${base}${imagePath}`;
+  
+  // If it's a string path
+  if (typeof imagePath === 'string') {
+    if (imagePath.startsWith('data:')) return imagePath;
+    if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/images/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${imagePath}`;
+    }
+    return imagePath;
   }
-  return imagePath;
+  
+  // Handle imageData object from API (like in admin panel)
+  if (imagePath?.data) {
+    // Check if it's a Buffer or array
+    if (typeof imagePath.data === 'string') {
+      return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data}`;
+    }
+    // Handle Buffer data
+    if (Array.isArray(imagePath.data) || imagePath.data?.data) {
+      const base64 = Buffer.from(imagePath.data.data || imagePath.data).toString('base64');
+      return `data:${imagePath.contentType || 'image/jpeg'};base64,${base64}`;
+    }
+    // Handle MongoDB Binary
+    if (imagePath.data?.$binary?.base64) {
+      return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data.$binary.base64}`;
+    }
+  }
+  
+  // Handle imageData with $binary (MongoDB format)
+  if (imagePath?.$binary?.base64) {
+    return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.$binary.base64}`;
+  }
+  
+  return '/images/placeholder.jpg';
 };
 
 // ===== Helper: get icon component =====
