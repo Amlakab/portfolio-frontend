@@ -28,7 +28,8 @@ interface Project {
   _id: string;
   title: string;
   description: string;
-  image?: string;
+  image?: string | any;
+  imageData?: any;
   tags: string[];
   github?: string;
   liveUrl?: string;
@@ -57,7 +58,7 @@ interface Testimonial {
   name: string;
   role: string;
   content: string;
-  avatar?: string;
+  avatar?: string | any;
   rating: number;
 }
 
@@ -66,7 +67,7 @@ interface BlogPost {
   title: string;
   excerpt: string;
   date: string;
-  image?: string;
+  image?: string | any;
   category: string;
 }
 
@@ -89,7 +90,7 @@ interface SiteSettings {
   about: {
     title: string;
     description: string;
-    image?: string;
+    image?: string | any;
   };
   contact: {
     email: string;
@@ -146,8 +147,7 @@ const DEFAULT_SKILLS: Skill[] = [
   { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
 ];
 
-// ===== Helper: get image URL =====
-// ===== Helper: get image URL - FIXED =====
+// ===== FIXED: Helper: get image URL =====
 const getImageUrl = (imagePath?: string | any): string => {
   if (!imagePath) return '/images/placeholder.jpg';
   
@@ -162,24 +162,30 @@ const getImageUrl = (imagePath?: string | any): string => {
     return imagePath;
   }
   
-  // Handle imageData object from API (like in admin panel)
+  // Handle imageData object from API
   if (imagePath?.data) {
-    // Check if it's a Buffer or array
-    if (typeof imagePath.data === 'string') {
-      return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data}`;
-    }
-    // Handle Buffer data
-    if (Array.isArray(imagePath.data) || imagePath.data?.data) {
-      const base64 = Buffer.from(imagePath.data.data || imagePath.data).toString('base64');
-      return `data:${imagePath.contentType || 'image/jpeg'};base64,${base64}`;
-    }
-    // Handle MongoDB Binary
-    if (imagePath.data?.$binary?.base64) {
-      return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data.$binary.base64}`;
+    try {
+      // If data is a string (base64)
+      if (typeof imagePath.data === 'string') {
+        return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data}`;
+      }
+      // If data is an array or has data property (Buffer)
+      if (Array.isArray(imagePath.data) || imagePath.data?.data) {
+        const bufferData = imagePath.data.data || imagePath.data;
+        const base64 = Buffer.from(bufferData).toString('base64');
+        return `data:${imagePath.contentType || 'image/jpeg'};base64,${base64}`;
+      }
+      // If data has $binary (MongoDB)
+      if (imagePath.data?.$binary?.base64) {
+        return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data.$binary.base64}`;
+      }
+    } catch (error) {
+      console.error('Error processing image data:', error);
+      return '/images/placeholder.jpg';
     }
   }
   
-  // Handle imageData with $binary (MongoDB format)
+  // Handle direct $binary (MongoDB format)
   if (imagePath?.$binary?.base64) {
     return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.$binary.base64}`;
   }
@@ -251,7 +257,6 @@ const Portfolio = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
-  // State with default values
   const [projects, setProjects] = useState<Project[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [educations, setEducations] = useState<Education[]>([]);
@@ -268,7 +273,6 @@ const Portfolio = () => {
       try {
         setLoading(true);
         
-        // Use Promise.allSettled to handle individual failures
         const results = await Promise.allSettled([
           portfolioApi.getProjects({ featured: true, limit: 3 }),
           portfolioApi.getExperiences(),
@@ -285,9 +289,6 @@ const Portfolio = () => {
           if (Array.isArray(data) && data.length > 0) {
             setProjects(data);
           }
-        } else {
-          console.warn('Projects API failed, using empty array');
-          setProjects([]);
         }
 
         // 2. Experiences
@@ -296,9 +297,6 @@ const Portfolio = () => {
           if (Array.isArray(data) && data.length > 0) {
             setExperiences(data);
           }
-        } else {
-          console.warn('Experiences API failed, using empty array');
-          setExperiences([]);
         }
 
         // 3. Educations
@@ -307,9 +305,6 @@ const Portfolio = () => {
           if (Array.isArray(data) && data.length > 0) {
             setEducations(data);
           }
-        } else {
-          console.warn('Educations API failed, using empty array');
-          setEducations([]);
         }
 
         // 4. Testimonials
@@ -318,9 +313,6 @@ const Portfolio = () => {
           if (Array.isArray(data) && data.length > 0) {
             setTestimonials(data);
           }
-        } else {
-          console.warn('Testimonials API failed, using empty array');
-          setTestimonials([]);
         }
 
         // 5. Blog Posts
@@ -329,9 +321,6 @@ const Portfolio = () => {
           if (Array.isArray(data) && data.length > 0) {
             setBlogPosts(data);
           }
-        } else {
-          console.warn('Blog posts API failed, using empty array');
-          setBlogPosts([]);
         }
 
         // 6. Skills
@@ -344,9 +333,6 @@ const Portfolio = () => {
             if (frontend.length > 0) setFrontendSkills(frontend);
             if (backend.length > 0) setBackendSkills(backend);
           }
-        } else {
-          console.warn('Skills API failed, using defaults');
-          // Keep default skills
         }
 
         // 7. Settings
@@ -355,14 +341,10 @@ const Portfolio = () => {
           if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             setSettings(data);
           }
-        } else {
-          console.warn('Settings API failed, using defaults');
-          // Keep DEFAULT_SETTINGS
         }
 
       } catch (error) {
         console.error('Failed to fetch portfolio data:', error);
-        // Keep using defaults
       } finally {
         setLoading(false);
       }
@@ -713,7 +695,7 @@ const Portfolio = () => {
               {projects.length > 0 ? projects.map((project, index) => (
                 <motion.div key={project._id} className={`${styles.projectCard} ${index % 2 === 0 ? styles.wide : styles.narrow}`} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} style={{ cursor: 'pointer', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: `0 10px 30px ${colors.shadow}`, display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
                   <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
-                    <img src={getImageUrl(project.image)} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getImageUrl(project.image || project.imageData)} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <motion.div className={styles.projectOverlay} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: `linear-gradient(to top, ${colors.primary}ee, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.5s ease-in-out' }} whileHover={{ opacity: 1 }}>
                       {project.liveUrl && (
                         <motion.a href={project.liveUrl} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} style={{ background: colors.primary, color: '#ffffff', border: 'none', padding: '12px 25px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '0.9rem', textDecoration: 'none' }}>
