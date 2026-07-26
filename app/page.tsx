@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { motion, AnimatePresence, useAnimation, useInView } from 'framer-motion';
 import {
   FiGithub, FiLinkedin, FiMail, FiDownload, FiExternalLink, FiArrowUp,
@@ -21,46 +21,7 @@ import { RiArticleLine } from 'react-icons/ri';
 import { MdRecordVoiceOver } from 'react-icons/md';
 import portfolioApi from '@/lib/api/portfolio';
 import styles from './page.module.css';
-import { ThemeProvider, useTheme } from './context/ThemeContext'; // 👈 Import from separate file
-
-
-// ===== Theme Context =====
-const ThemeContext = createContext({
-  isDarkMode: false,
-  toggleTheme: () => {},
-});
-
-//  const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-//   const [isDarkMode, setIsDarkMode] = useState(false);
-
-//   useEffect(() => {
-//     const saved = localStorage.getItem('theme');
-//     if (saved) {
-//       setIsDarkMode(saved === 'dark');
-//     } else {
-//       setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-//     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-//   }, [isDarkMode]);
-
-//   const toggleTheme = () => setIsDarkMode(!isDarkMode);
-
-//   return (
-//     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-//       {children}
-//     </ThemeContext.Provider>
-//   );
-// };
-
-//  const useTheme = () => {
-//   const context = useContext(ThemeContext);
-//   if (!context) throw new Error('useTheme must be used within ThemeProvider');
-//   return context;
-// };
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 // ===== Types =====
 interface Project {
@@ -144,13 +105,57 @@ interface SiteSettings {
   };
 }
 
+// ===== DEFAULT FALLBACK DATA =====
+const DEFAULT_SETTINGS: SiteSettings = {
+  hero: {
+    title: 'Amlakie Abebaw',
+    subtitle: 'Software Developer',
+    description: 'I build exceptional digital experiences with modern web technologies.',
+    profileImages: ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'],
+    resumeUrl: '/documents/Amlakie_Abebaw_Resume.pdf'
+  },
+  about: {
+    title: 'About Me',
+    description: "I'm a passionate and self-motivated Software Developer with a strong foundation in both front-end and back-end technologies. I love creating beautiful, functional, and user-friendly applications that solve real-world problems.",
+    image: '/images/about4.jpg'
+  },
+  contact: {
+    email: 'amlakieab4@gmail.com',
+    phone: '+251 9 12 43 65 73',
+    location: 'Addis Ababa, Ethiopia',
+    socialLinks: [
+      { platform: 'GitHub', url: 'https://github.com/amlakie', icon: 'AiFillGithub' },
+      { platform: 'LinkedIn', url: 'https://linkedin.com/in/amlakie', icon: 'AiFillLinkedin' },
+      { platform: 'Email', url: 'mailto:amlakieab4@gmail.com', icon: 'IoMdMail' }
+    ]
+  },
+  stats: {
+    projectsCompleted: 25,
+    happyClients: 15,
+    linesOfCode: 50000,
+    yearsExperience: 3
+  }
+};
+
+const DEFAULT_SKILLS: Skill[] = [
+  { _id: '1', name: 'React', value: 90, icon: 'FaReact', category: 'frontend' },
+  { _id: '2', name: 'TypeScript', value: 85, icon: 'SiTypescript', category: 'frontend' },
+  { _id: '3', name: 'Tailwind CSS', value: 80, icon: 'SiTailwindcss', category: 'frontend' },
+  { _id: '4', name: 'Node.js', value: 80, icon: 'FaNodeJs', category: 'backend' },
+  { _id: '5', name: 'MongoDB', value: 75, icon: 'SiMongodb', category: 'backend' },
+  { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
+];
+
 // ===== Helper: get image URL =====
 const getImageUrl = (imagePath?: string): string => {
   if (!imagePath) return '/images/placeholder.jpg';
   if (imagePath.startsWith('data:')) return imagePath;
   if (imagePath.startsWith('http')) return imagePath;
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-  return `${base}${imagePath}`;
+  if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/images/')) {
+    const base = process.env.NEXT_PUBLIC_API_URL || '';
+    return `${base}${imagePath}`;
+  }
+  return imagePath;
 };
 
 // ===== Helper: get icon component =====
@@ -188,18 +193,23 @@ const getSocialIcon = (iconName: string): JSX.Element => {
   return icons[iconName] || <FiExternalLink size={20} />;
 };
 
-// ===== Robust data extraction =====
+// ===== Extract data helper =====
 const extractData = (response: any): any => {
-  // Try the nested structure: { data: { data: [...] } }
-  if (response?.data?.data?.data !== undefined) {
-    return response.data.data.data;
+  try {
+    if (response?.data?.data?.data !== undefined) {
+      return response.data.data.data;
+    }
+    if (response?.data?.data !== undefined) {
+      return response.data.data;
+    }
+    if (response?.data !== undefined) {
+      return response.data;
+    }
+    return response || [];
+  } catch (error) {
+    console.error('Error extracting data:', error);
+    return [];
   }
-  // Single object: { data: { ... } }
-  if (response?.data?.data !== undefined) {
-    return response.data.data;
-  }
-  // Fallback to response.data or empty array
-  return response?.data || [];
 };
 
 // ===== Main Component =====
@@ -212,29 +222,25 @@ const Portfolio = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
+  // State with default values
   const [projects, setProjects] = useState<Project[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [educations, setEducations] = useState<Education[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [frontendSkills, setFrontendSkills] = useState<Skill[]>([]);
-  const [backendSkills, setBackendSkills] = useState<Skill[]>([]);
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [frontendSkills, setFrontendSkills] = useState<Skill[]>(DEFAULT_SKILLS.filter(s => s.category === 'frontend'));
+  const [backendSkills, setBackendSkills] = useState<Skill[]>(DEFAULT_SKILLS.filter(s => s.category === 'backend'));
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
+  // ===== FETCH DATA WITH PROPER ERROR HANDLING =====
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        const [
-          projectsRes,
-          experiencesRes,
-          educationsRes,
-          testimonialsRes,
-          blogRes,
-          skillsRes,
-          settingsRes,
-        ] = await Promise.all([
+        
+        // Use Promise.allSettled to handle individual failures
+        const results = await Promise.allSettled([
           portfolioApi.getProjects({ featured: true, limit: 3 }),
           portfolioApi.getExperiences(),
           portfolioApi.getEducations(),
@@ -244,19 +250,90 @@ const Portfolio = () => {
           portfolioApi.getSettings(),
         ]);
 
-        setProjects(extractData(projectsRes) || []);
-        setExperiences(extractData(experiencesRes) || []);
-        setEducations(extractData(educationsRes) || []);
-        setTestimonials(extractData(testimonialsRes) || []);
-        setBlogPosts(extractData(blogRes) || []);
+        // 1. Projects
+        if (results[0].status === 'fulfilled') {
+          const data = extractData(results[0].value);
+          if (Array.isArray(data) && data.length > 0) {
+            setProjects(data);
+          }
+        } else {
+          console.warn('Projects API failed, using empty array');
+          setProjects([]);
+        }
 
-        const skills = extractData(skillsRes) || [];
-        setFrontendSkills(skills.filter((s: Skill) => s.category === 'frontend'));
-        setBackendSkills(skills.filter((s: Skill) => s.category === 'backend'));
+        // 2. Experiences
+        if (results[1].status === 'fulfilled') {
+          const data = extractData(results[1].value);
+          if (Array.isArray(data) && data.length > 0) {
+            setExperiences(data);
+          }
+        } else {
+          console.warn('Experiences API failed, using empty array');
+          setExperiences([]);
+        }
 
-        setSettings(extractData(settingsRes) || null);
+        // 3. Educations
+        if (results[2].status === 'fulfilled') {
+          const data = extractData(results[2].value);
+          if (Array.isArray(data) && data.length > 0) {
+            setEducations(data);
+          }
+        } else {
+          console.warn('Educations API failed, using empty array');
+          setEducations([]);
+        }
+
+        // 4. Testimonials
+        if (results[3].status === 'fulfilled') {
+          const data = extractData(results[3].value);
+          if (Array.isArray(data) && data.length > 0) {
+            setTestimonials(data);
+          }
+        } else {
+          console.warn('Testimonials API failed, using empty array');
+          setTestimonials([]);
+        }
+
+        // 5. Blog Posts
+        if (results[4].status === 'fulfilled') {
+          const data = extractData(results[4].value);
+          if (Array.isArray(data) && data.length > 0) {
+            setBlogPosts(data);
+          }
+        } else {
+          console.warn('Blog posts API failed, using empty array');
+          setBlogPosts([]);
+        }
+
+        // 6. Skills
+        if (results[5].status === 'fulfilled') {
+          const data = extractData(results[5].value);
+          if (Array.isArray(data) && data.length > 0) {
+            const skills = data;
+            const frontend = skills.filter((s: Skill) => s.category === 'frontend');
+            const backend = skills.filter((s: Skill) => s.category === 'backend');
+            if (frontend.length > 0) setFrontendSkills(frontend);
+            if (backend.length > 0) setBackendSkills(backend);
+          }
+        } else {
+          console.warn('Skills API failed, using defaults');
+          // Keep default skills
+        }
+
+        // 7. Settings
+        if (results[6].status === 'fulfilled') {
+          const data = extractData(results[6].value);
+          if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+            setSettings(data);
+          }
+        } else {
+          console.warn('Settings API failed, using defaults');
+          // Keep DEFAULT_SETTINGS
+        }
+
       } catch (error) {
         console.error('Failed to fetch portfolio data:', error);
+        // Keep using defaults
       } finally {
         setLoading(false);
       }
@@ -474,7 +551,7 @@ const Portfolio = () => {
               </h2>
             </div>
             <div className={styles.timeline}>
-              {educations.map((edu, index) => (
+              {educations.length > 0 ? educations.map((edu, index) => (
                 <motion.div key={edu._id} className={`${styles.timelineItem} ${index % 2 === 0 ? styles.left : styles.right}`} initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }}>
                   <motion.div className={styles.timelineContent} whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: '30px', borderRadius: '15px', borderLeft: `5px solid ${colors.primary}`, color: colors.textPrimary }}>
                     <h3 style={{ fontSize: '1.5rem', color: colors.primary, marginBottom: '10px', fontFamily: "'Poppins', sans-serif" }}>{edu.degree}</h3>
@@ -483,7 +560,9 @@ const Portfolio = () => {
                     <p style={{ marginBottom: 0, lineHeight: 1.8, color: colors.textPrimary }}>{edu.description}</p>
                   </motion.div>
                 </motion.div>
-              ))}
+              )) : (
+                <p style={{ textAlign: 'center', color: colors.textSecondary }}>No education data available</p>
+              )}
             </div>
           </motion.div>
         </div>
@@ -500,7 +579,7 @@ const Portfolio = () => {
               </h2>
             </div>
             <div className={styles.timeline}>
-              {experiences.map((exp, index) => (
+              {experiences.length > 0 ? experiences.map((exp, index) => (
                 <motion.div key={exp._id} className={`${styles.timelineItem} ${index % 2 === 0 ? styles.left : styles.right}`} initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }}>
                   <motion.div className={styles.timelineContent} whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: '30px', borderRadius: '15px', borderLeft: `5px solid ${colors.primary}`, color: colors.textPrimary }}>
                     <h3 style={{ fontSize: '1.5rem', color: colors.primary, marginBottom: '10px', fontFamily: "'Poppins', sans-serif" }}>{exp.role}</h3>
@@ -509,7 +588,9 @@ const Portfolio = () => {
                     <p style={{ marginBottom: 0, lineHeight: 1.8, color: colors.textPrimary }}>{exp.description}</p>
                   </motion.div>
                 </motion.div>
-              ))}
+              )) : (
+                <p style={{ textAlign: 'center', color: colors.textSecondary }}>No experience data available</p>
+              )}
             </div>
           </motion.div>
         </div>
@@ -536,7 +617,7 @@ const Portfolio = () => {
                     <h3 style={{ fontSize: '1.5rem', marginBottom: '25px', color: colors.primary, fontFamily: "'Poppins', sans-serif", textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       <motion.span whileHover={{ rotate: 360 }}><FaReact /></motion.span> Frontend Skills
                     </h3>
-                    {frontendSkills.map((skill, index) => (
+                    {frontendSkills.length > 0 ? frontendSkills.map((skill, index) => (
                       <motion.div key={skill._id} className={styles.progressItem} style={{ marginBottom: '25px' }} whileHover={{ x: 10 }}>
                         <div className={styles.progressHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
                           <span className={styles.skillIcon} style={{ fontSize: '1.5rem', marginRight: '15px', color: colors.primary }}>{getIconComponent(skill.icon)}</span>
@@ -547,7 +628,9 @@ const Portfolio = () => {
                           <motion.div className={styles.progressFill} initial={{ width: 0 }} whileInView={{ width: `${skill.value}%` }} viewport={{ once: true }} transition={{ duration: 1.5, delay: index * 0.1 + 0.3 }} style={{ height: '100%', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '5px', boxShadow: `0 2px 10px ${colors.primary}30` }} />
                         </div>
                       </motion.div>
-                    ))}
+                    )) : (
+                      <p style={{ textAlign: 'center', color: colors.textSecondary }}>No frontend skills data available</p>
+                    )}
                   </motion.div>
                 </motion.div>
               </div>
@@ -558,7 +641,7 @@ const Portfolio = () => {
                     <h3 style={{ fontSize: '1.5rem', marginBottom: '25px', color: colors.secondary, fontFamily: "'Poppins', sans-serif", textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       <motion.span whileHover={{ rotate: 360 }}><FaServer /></motion.span> Backend Skills
                     </h3>
-                    {backendSkills.map((skill, index) => (
+                    {backendSkills.length > 0 ? backendSkills.map((skill, index) => (
                       <motion.div key={skill._id} className={styles.progressItem} style={{ marginBottom: '25px' }} whileHover={{ x: 10 }}>
                         <div className={styles.progressHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
                           <span className={styles.skillIcon} style={{ fontSize: '1.5rem', marginRight: '15px', color: colors.secondary }}>{getIconComponent(skill.icon)}</span>
@@ -569,7 +652,9 @@ const Portfolio = () => {
                           <motion.div className={styles.progressFill} initial={{ width: 0 }} whileInView={{ width: `${skill.value}%` }} viewport={{ once: true }} transition={{ duration: 1.5, delay: index * 0.1 + 0.3 }} style={{ height: '100%', background: `linear-gradient(90deg, ${colors.secondary}, ${colors.primary})`, borderRadius: '5px', boxShadow: `0 2px 10px ${colors.secondary}30` }} />
                         </div>
                       </motion.div>
-                    ))}
+                    )) : (
+                      <p style={{ textAlign: 'center', color: colors.textSecondary }}>No backend skills data available</p>
+                    )}
                   </motion.div>
                 </motion.div>
               </div>
@@ -596,7 +681,7 @@ const Portfolio = () => {
               ))}
             </div>
             <div className={styles.projectGrid}>
-              {projects.map((project, index) => (
+              {projects.length > 0 ? projects.map((project, index) => (
                 <motion.div key={project._id} className={`${styles.projectCard} ${index % 2 === 0 ? styles.wide : styles.narrow}`} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} style={{ cursor: 'pointer', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: `0 10px 30px ${colors.shadow}`, display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
                   <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
                     <img src={getImageUrl(project.image)} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -623,7 +708,9 @@ const Portfolio = () => {
                     </div>
                   </div>
                 </motion.div>
-              ))}
+              )) : (
+                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No projects data available</p>
+              )}
             </div>
           </motion.div>
         </div>
@@ -640,7 +727,7 @@ const Portfolio = () => {
               </h2>
             </div>
             <div className={styles.testimonialSlider} style={{ position: 'relative', padding: '20px 0', display: 'flex', gap: '30px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}>
-              {testimonials.map((testimonial) => (
+              {testimonials.length > 0 ? testimonials.map((testimonial) => (
                 <motion.div key={testimonial._id} className={styles.testimonialCard} whileHover={{ scale: 1.02, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', padding: '40px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', minWidth: '80%', scrollSnapAlign: 'start' }}>
                   <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '25px' }}>
                     <div className={styles.testimonialAvatar} style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginRight: '25px', border: `3px solid ${colors.primary}`, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)', position: 'relative' }}>
@@ -661,7 +748,9 @@ const Portfolio = () => {
                     </p>
                   </div>
                 </motion.div>
-              ))}
+              )) : (
+                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No testimonials data available</p>
+              )}
             </div>
           </motion.div>
         </div>
@@ -678,7 +767,7 @@ const Portfolio = () => {
               </h2>
             </div>
             <div className={styles.blogGrid}>
-              {blogPosts.map((post) => (
+              {blogPosts.length > 0 ? blogPosts.map((post) => (
                 <div key={post._id} className={styles.blogCard}>
                   <motion.div className={styles.blogCardInner} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)', marginBottom: '30px', height: '100%' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} whileHover={{ y: -10, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }}>
                     <div className={styles.blogImage} style={{ position: 'relative', height: '250px', overflow: 'hidden' }}>
@@ -696,7 +785,9 @@ const Portfolio = () => {
                     </div>
                   </motion.div>
                 </div>
-              ))}
+              )) : (
+                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No blog posts available</p>
+              )}
             </div>
           </motion.div>
         </div>
