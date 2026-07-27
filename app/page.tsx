@@ -551,39 +551,29 @@ const Portfolio = () => {
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
   // ===== Get profile images from settings - PRIORITIZE profileImagesData (base64) =====
-  const getProfileImages = (): string[] => {
-    if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  // ✅ CORRECT - Same as SettingsTab
+const getProfileImages = (): string[] => {
+  // FIRST: Check profileImagesData (Buffer data from database)
+  if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
+    const urls = settings.hero.profileImagesData
+      .map((img: any) => getProfileImageUrl(img))
+      .filter((url: string | null) => url !== null);
     
-    // FIRST: Check if profileImagesData exists (this contains the actual image data as base64)
-    if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
-      console.log('📸 Using profileImagesData from database (base64):', settings.hero.profileImagesData.length);
-      const urls = settings.hero.profileImagesData
-        .map((img: any) => {
-          // The image is stored as { data: Buffer, contentType: string, fileName: string }
-          // We need to convert it to a data URL
-          const url = getProfileImageUrl(img);
-          console.log('📸 Converted profile image:', url ? 'Success (data URL)' : 'Failed');
-          return url;
-        })
-        .filter((url: string | null) => url !== null);
-      
-      if (urls.length > 0) {
-        console.log('📸 Profile images converted to data URLs:', urls.length);
-        return urls as string[];
-      }
+    if (urls.length > 0) {
+      return urls as string[];
     }
-    
-    // SECOND: Check if profileImages exists (URLs from database - fallback)
-    if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
-      console.log('📸 Using profileImages from database (URLs):', settings.hero.profileImages.length);
-      return settings.hero.profileImages.map((img: string) => {
-        const url = getProfileImageUrl(img);
-        return url || '/images/placeholder.jpg';
-      });
-    }
-    
-    return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
-  };
+  }
+  
+  // SECOND: Fallback to profileImages (URLs)
+  if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
+    return settings.hero.profileImages.map((img: string) => {
+      const url = getProfileImageUrl(img);
+      return url || '/images/placeholder.jpg';
+    });
+  }
+  
+  return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+};
 
   const profiles = getProfileImages();
 
