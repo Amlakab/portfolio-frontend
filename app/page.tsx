@@ -550,51 +550,126 @@ const Portfolio = () => {
   // ===== Get names from settings =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
-  // ===== Get profile images from settings - PRIORITIZE profileImagesData (base64) =====
-  // ✅ CORRECT - Same as SettingsTab
+  // ===== Get profile images from settings - PRIORITIZE profileImagesData =====
 const getProfileImages = (): string[] => {
-  // FIRST: Check profileImagesData (Buffer data from database)
+  if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  
+  // FIRST: Check profileImagesData (this contains the actual image data as base64)
   if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
+    console.log('📸 Using profileImagesData from database (base64):', settings.hero.profileImagesData.length);
     const urls = settings.hero.profileImagesData
-      .map((img: any) => getProfileImageUrl(img))
+      .map((img: any) => {
+        // The image is stored as { data: { $binary: { base64: ... } }, contentType, fileName }
+        // We need to convert it to a data URL
+        let base64 = '';
+        
+        // Handle the nested base64 data structure
+        if (img?.data?.$binary?.base64) {
+          base64 = img.data.$binary.base64;
+        } else if (img?.data?.base64) {
+          base64 = img.data.base64;
+        } else if (img?.data) {
+          // If data is already a string or Buffer
+          if (typeof img.data === 'string') {
+            base64 = img.data;
+          } else if (img.data.data) {
+            // Handle nested data
+            if (typeof img.data.data === 'string') {
+              base64 = img.data.data;
+            } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
+              base64 = Buffer.from(img.data.data).toString('base64');
+            }
+          }
+        }
+        
+        if (base64) {
+          const contentType = img.contentType || 'image/jpeg';
+          return `data:${contentType};base64,${base64}`;
+        }
+        return null;
+      })
       .filter((url: string | null) => url !== null);
     
     if (urls.length > 0) {
+      console.log('📸 Profile images converted to data URLs:', urls.length);
       return urls as string[];
     }
   }
   
-  // SECOND: Fallback to profileImages (URLs)
+  // SECOND: Check profileImages (URLs - fallback)
   if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
+    console.log('📸 Using profileImages from database (URLs):', settings.hero.profileImages.length);
     return settings.hero.profileImages.map((img: string) => {
-      const url = getProfileImageUrl(img);
-      return url || '/images/placeholder.jpg';
+      // If it's a URL path, add the API base URL
+      if (img.startsWith('/uploads/')) {
+        const base = process.env.NEXT_PUBLIC_API_URL || '';
+        return `${base}${img}`;
+      }
+      return img;
     });
   }
   
   return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
 };
 
-  const profiles = getProfileImages();
-
-  // ===== Get about image from settings =====
-  const getAboutImage = (): string => {
-    if (!settings?.about) return '/images/about4.jpg';
+// ===== Get about image from settings - PRIORITIZE imageData =====
+const getAboutImage = (): string => {
+  if (!settings?.about) return '/images/about4.jpg';
+  
+  // FIRST: Check imageData (this contains the actual image data as base64)
+  if (settings.about.imageData) {
+    console.log('📸 Using about imageData from database (base64)');
+    let base64 = '';
+    const img = settings.about.imageData;
     
-    if (settings.about.imageData) {
-      const url = getImageUrl({ imageData: settings.about.imageData });
-      if (url) return url;
+    // Handle the nested base64 data structure
+    if (img?.data?.$binary?.base64) {
+      base64 = img.data.$binary.base64;
+    } else if (img?.data?.base64) {
+      base64 = img.data.base64;
+    } else if (img?.data) {
+      if (typeof img.data === 'string') {
+        base64 = img.data;
+      } else if (img.data.data) {
+        if (typeof img.data.data === 'string') {
+          base64 = img.data.data;
+        } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
+          base64 = Buffer.from(img.data.data).toString('base64');
+        }
+      }
     }
     
-    if (settings.about.image) {
-      const url = getImageUrl({ image: settings.about.image });
-      if (url) return url;
+    if (base64) {
+      const contentType = img.contentType || 'image/jpeg';
+      const dataUrl = `data:${contentType};base64,${base64}`;
+      console.log('📸 About image converted to data URL');
+      return dataUrl;
     }
-    
-    return '/images/about4.jpg';
-  };
+  }
+  
+  // SECOND: Check image (URL - fallback)
+  if (settings.about.image) {
+    console.log('📸 Using about image from database (URL):', settings.about.image);
+    if (settings.about.image.startsWith('/uploads/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${settings.about.image}`;
+    }
+    if (settings.about.image.startsWith('/images/')) {
+      return settings.about.image;
+    }
+    return settings.about.image;
+  }
+  
+  return '/images/about4.jpg';
+};
 
-  const aboutImage = getAboutImage();
+// Then use them:
+const profiles = getProfileImages();
+const aboutImage = getAboutImage();
+
+console.log('📸 Profile images count:', profiles.length);
+console.log('📸 First profile image preview:', profiles[0]?.substring(0, 100));
+console.log('📸 About image:', aboutImage?.substring(0, 100));
 
   // Log what we have
   console.log('📸 Profile images count:', profiles.length);
