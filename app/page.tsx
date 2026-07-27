@@ -252,7 +252,7 @@ const getImageUrl = (item: any): string | null => {
   return null;
 };
 
-// Helper function to get profile image URL (EXACTLY like SettingsTab)
+// Helper function to get profile image URL from data (EXACTLY like SettingsTab)
 const getProfileImageUrl = (profileImage: any): string | null => {
   if (!profileImage) return null;
 
@@ -366,7 +366,6 @@ const getSocialIcon = (iconName: string): JSX.Element => {
 // ===== Extract data helper =====
 const extractData = (response: any): any => {
   try {
-    // Handle different response structures
     if (response?.data?.data !== undefined) {
       return response.data.data;
     }
@@ -408,7 +407,6 @@ const Portfolio = () => {
         
         console.log('🚀 Fetching all portfolio data...');
         
-        // Fetch all data in parallel
         const [
           projectsRes,
           experiencesRes,
@@ -476,6 +474,7 @@ const Portfolio = () => {
         const settingsData = extractData(settingsRes);
         if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
           console.log('📦 Settings loaded from database');
+          console.log('📸 Settings hero:', settingsData.hero);
           setSettings(settingsData);
         }
 
@@ -551,25 +550,32 @@ const Portfolio = () => {
   // ===== Get names from settings =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
-  // ===== Get profile images from settings - KEEP THIS UNCHANGED =====
+  // ===== Get profile images from settings - PRIORITIZE profileImagesData (base64) =====
   const getProfileImages = (): string[] => {
     if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
     
-    // Check if profileImagesData exists (from database)
+    // FIRST: Check if profileImagesData exists (this contains the actual image data as base64)
     if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
-      console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
+      console.log('📸 Using profileImagesData from database (base64):', settings.hero.profileImagesData.length);
       const urls = settings.hero.profileImagesData
-        .map((img: any) => getProfileImageUrl(img))
+        .map((img: any) => {
+          // The image is stored as { data: Buffer, contentType: string, fileName: string }
+          // We need to convert it to a data URL
+          const url = getProfileImageUrl(img);
+          console.log('📸 Converted profile image:', url ? 'Success (data URL)' : 'Failed');
+          return url;
+        })
         .filter((url: string | null) => url !== null);
       
       if (urls.length > 0) {
+        console.log('📸 Profile images converted to data URLs:', urls.length);
         return urls as string[];
       }
     }
     
-    // Check if profileImages exists (URLs from database)
+    // SECOND: Check if profileImages exists (URLs from database - fallback)
     if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
-      console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
+      console.log('📸 Using profileImages from database (URLs):', settings.hero.profileImages.length);
       return settings.hero.profileImages.map((img: string) => {
         const url = getProfileImageUrl(img);
         return url || '/images/placeholder.jpg';
@@ -599,6 +605,10 @@ const Portfolio = () => {
   };
 
   const aboutImage = getAboutImage();
+
+  // Log what we have
+  console.log('📸 Profile images count:', profiles.length);
+  console.log('📸 First profile image preview:', profiles[0]?.substring(0, 100));
 
   useEffect(() => {
     const nameInterval = setInterval(() => {
@@ -704,7 +714,7 @@ const Portfolio = () => {
                       alt="Profile" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => {
-                        console.error('Failed to load profile image:', profiles[profileIndex]);
+                        console.error('Failed to load profile image:', profiles[profileIndex]?.substring(0, 50));
                         (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
                       }}
                     />
