@@ -733,13 +733,12 @@ const Portfolio = () => {
         </h2>
       </div>
       
-      <div className={styles.projectFilter} style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '50px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '50px' }}>
         {['All', 'Web', 'Mobile', 'Design', 'Full Stack'].map((filter) => (
           <motion.button 
             key={filter} 
             whileHover={{ scale: 1.05, backgroundColor: colors.primary, color: '#ffffff' }} 
             whileTap={{ scale: 0.95 }} 
-            className={styles.filterBtn} 
             style={{ 
               backgroundColor: 'transparent', 
               color: colors.textPrimary, 
@@ -757,19 +756,24 @@ const Portfolio = () => {
         ))}
       </div>
       
-      <div className={styles.projectGrid}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(3, 1fr)', 
+        gap: '30px', 
+        marginTop: '40px' 
+      }}>
         {projects.length > 0 ? projects.map((project, index) => {
           const isWide = index % 3 === 0;
           return (
             <motion.div 
               key={project._id} 
-              className={`${styles.projectCard} ${isWide ? styles.wide : styles.narrow}`} 
               initial={{ opacity: 0, scale: 0.9 }} 
               whileInView={{ opacity: 1, scale: 1 }} 
               viewport={{ once: true }} 
               transition={{ duration: 0.5, delay: index * 0.1 }} 
               whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} 
               style={{ 
+                gridColumn: isWide ? 'span 2' : 'span 1',
                 cursor: 'pointer', 
                 backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
                 borderRadius: '20px', 
@@ -780,14 +784,13 @@ const Portfolio = () => {
                 transition: 'all 0.3s ease' 
               }}
             >
-              <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
+              <div style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
                 <img 
                   src={getImageUrl(project) || '/images/placeholder.jpg'} 
                   alt={project.title} 
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 />
                 <motion.div 
-                  className={styles.projectOverlay} 
                   style={{ 
                     position: 'absolute', 
                     top: 0, 
@@ -830,7 +833,7 @@ const Portfolio = () => {
                 </motion.div>
               </div>
               
-              <div className={styles.projectInfo} style={{ padding: '20px', flex: 1 }}>
+              <div style={{ padding: '20px', flex: 1 }}>
                 <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
                   {project.title}
                 </h3>
@@ -838,7 +841,7 @@ const Portfolio = () => {
                   {project.description}
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div className={styles.projectTags} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}>
                     {project.tags.map((tag, i) => (
                       <span 
                         key={i} 
