@@ -414,6 +414,8 @@ const Portfolio = () => {
   const [backendSkills, setBackendSkills] = useState<Skill[]>(DEFAULT_SKILLS.filter(s => s.category === 'backend'));
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
+  
+
 
   // ===== FETCH ALL DATA =====
   useEffect(() => {
@@ -572,8 +574,45 @@ const Portfolio = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections, activeSection]);
 
+  // ===== Get names and subtitles from settings =====
+const getNamesAndSubtitles = () => {
+  // Get the full title from settings
+  const fullTitle = settings?.hero?.title || 'Amlakie';
+  const fullSubtitle = settings?.hero?.subtitle || 'Software Engineer';
+  
+  // Split title by comma or space to get individual names
+  // Expected format: "Designer, Developer, Amlakie" or "Designer Developer Amlakie"
+  let names = [];
+  let subtitles = [];
+  
+  // Try to parse title as comma-separated first
+  if (fullTitle.includes(',')) {
+    names = fullTitle.split(',').map(name => name.trim());
+  } else {
+    // If no commas, split by space
+    names = fullTitle.split(' ').filter(name => name.trim());
+  }
+  
+  // Parse subtitles (comma-separated)
+  if (fullSubtitle.includes(',')) {
+    subtitles = fullSubtitle.split(',').map(sub => sub.trim());
+  } else {
+    // If subtitles don't have commas, use the full subtitle for all
+    subtitles = names.map(() => fullSubtitle);
+  }
+  
+  // Ensure we have matching lengths
+  while (subtitles.length < names.length) {
+    subtitles.push(fullSubtitle);
+  }
+  
+  return { names, subtitles };
+};
+
+const { names, subtitles } = getNamesAndSubtitles();
+
   // ===== Get names from settings =====
-  const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
+  // const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
   // ===== Get profile images from settings - PRIORITIZE profileImagesData =====
   const getProfileImages = (): string[] => {
@@ -771,7 +810,7 @@ const Portfolio = () => {
                   Hi, I'm <span style={{ color: colors.primary }}>{names[nameIndex]}</span>
                 </h1>
                 <motion.h2 className={styles.heroSubtitle} key={nameIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 400, marginBottom: '30px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
-                  {settings?.hero?.subtitle || 'Software Engineer'}
+                  {subtitles[nameIndex] || 'Software Engineer'}
                 </motion.h2>
                 <p className={styles.heroDescription} style={{ fontSize: '1.1rem', marginBottom: '40px', maxWidth: '600px', color: colors.textPrimary }}>
                   {settings?.hero?.description || 'I build exceptional digital experiences with modern web technologies.'}
