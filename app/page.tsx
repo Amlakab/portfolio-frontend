@@ -492,69 +492,138 @@ const Portfolio = () => {
   // ===== Get names from settings (from database) =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
- // ===== Get profile images from settings (from database) - SAME as SettingsTab =====
-  const getProfileImages = (): string[] => {
-    if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+ // ===== Get profile images from settings (from database) - FIXED =====
+const getProfileImages = (): string[] => {
+  if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  
+  // Check if profileImagesData exists (from database)
+  if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
+    console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
+    console.log('📸 Raw profileImagesData:', settings.hero.profileImagesData);
     
-    // Check if profileImagesData exists (from database)
-    if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
-      console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
-      // Convert each image data to URL using the same function as SettingsTab
-      const urls = settings.hero.profileImagesData
-        .map((img: any) => {
-          // Pass the entire image object to getProfileImageUrl
-          // The image object might have { data, contentType, fileName } structure
-          const url = getProfileImageUrl(img);
-          console.log('📸 Converted profile image:', url ? 'Success' : 'Failed');
-          return url;
-        })
-        .filter((url: string | null) => url !== null);
-      
-      if (urls.length > 0) {
-        return urls as string[];
+    // Convert each image data to URL
+    const urls = settings.hero.profileImagesData
+      .map((img: any) => {
+        // The image object has structure: { data: Buffer, contentType: string, fileName: string }
+        // We need to convert the Buffer to base64
+        let base64 = '';
+        
+        if (img.data) {
+          // Check if data is a Buffer or has different formats
+          if (typeof img.data === 'string') {
+            base64 = img.data;
+          } else if (img.data?.$binary?.base64) {
+            base64 = img.data.$binary.base64;
+          } else if (img.data?.data) {
+            try {
+              if (typeof img.data.data === 'string') {
+                base64 = img.data.data;
+              } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
+                base64 = Buffer.from(img.data.data).toString('base64');
+              }
+            } catch (e) {
+              console.warn('Failed to convert profile image data:', e);
+            }
+          } else if (img.data instanceof Buffer) {
+            base64 = img.data.toString('base64');
+          } else if (img.data && typeof img.data === 'object') {
+            try {
+              const dataStr = JSON.stringify(img.data);
+              base64 = Buffer.from(dataStr).toString('base64');
+            } catch (e) {
+              console.warn('Failed to convert complex profile image data:', e);
+            }
+          }
+        }
+        
+        if (base64) {
+          const contentType = img.contentType || 'image/jpeg';
+          const dataUrl = `data:${contentType};base64,${base64}`;
+          console.log('📸 Converted profile image to data URL');
+          return dataUrl;
+        }
+        
+        console.warn('📸 Failed to convert profile image, no data found');
+        return null;
+      })
+      .filter((url: string | null) => url !== null);
+    
+    if (urls.length > 0) {
+      console.log('📸 Successfully converted', urls.length, 'profile images');
+      return urls as string[];
+    }
+  }
+  
+  // Check if profileImages exists (URLs from database)
+  if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
+    console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
+    // These are likely file paths, try to convert them
+    return settings.hero.profileImages.map((img: string) => {
+      if (img.startsWith('data:')) return img;
+      if (img.startsWith('/uploads/') || img.startsWith('/images/')) {
+        const base = process.env.NEXT_PUBLIC_API_URL || '';
+        return `${base}${img}`;
       }
-    }
-    
-    // Check if profileImages exists (URLs from database)
-    if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
-      console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
-      return settings.hero.profileImages.map((img: string) => {
-        const url = getProfileImageUrl(img);
-        return url || '/images/placeholder.jpg';
-      });
-    }
-    
-    return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
-  };
+      return img;
+    });
+  }
+  
+  return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+};
 
   const profiles = getProfileImages();
 
-  // ===== Get about image from settings (from database) - SAME as SettingsTab =====
-  const getAboutImage = (): string => {
-    if (!settings?.about) return '/images/about4.jpg';
+  // ===== Get about image from settings (from database) - FIXED =====
+const getAboutImage = (): string => {
+  if (!settings?.about) return '/images/about4.jpg';
+  
+  // Check for imageData (from database)
+  if (settings.about.imageData) {
+    console.log('📸 Using about imageData from database');
+    const img = settings.about.imageData;
+    let base64 = '';
     
-    // Check for imageData (from database)
-    if (settings.about.imageData) {
-      console.log('📸 Using about imageData from database');
-      const url = getImageUrl({ imageData: settings.about.imageData });
-      if (url) {
-        console.log('📸 About image converted to data URL');
-        return url;
+    if (img.data) {
+      if (typeof img.data === 'string') {
+        base64 = img.data;
+      } else if (img.data?.$binary?.base64) {
+        base64 = img.data.$binary.base64;
+      } else if (img.data?.data) {
+        try {
+          if (typeof img.data.data === 'string') {
+            base64 = img.data.data;
+          } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
+            base64 = Buffer.from(img.data.data).toString('base64');
+          }
+        } catch (e) {
+          console.warn('Failed to convert about image data:', e);
+        }
+      } else if (img.data instanceof Buffer) {
+        base64 = img.data.toString('base64');
       }
     }
     
-    // Check for image URL (from database)
-    if (settings.about.image) {
-      console.log('📸 Using about image from database:', settings.about.image);
-      const url = getImageUrl({ image: settings.about.image });
-      if (url) {
-        console.log('📸 About image URL:', url);
-        return url;
-      }
+    if (base64) {
+      const contentType = img.contentType || 'image/jpeg';
+      const dataUrl = `data:${contentType};base64,${base64}`;
+      console.log('📸 About image converted to data URL');
+      return dataUrl;
     }
-    
-    return '/images/about4.jpg';
-  };
+  }
+  
+  // Check for image URL (from database)
+  if (settings.about.image) {
+    console.log('📸 Using about image from database:', settings.about.image);
+    if (settings.about.image.startsWith('data:')) return settings.about.image;
+    if (settings.about.image.startsWith('/uploads/') || settings.about.image.startsWith('/images/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${settings.about.image}`;
+    }
+    return settings.about.image;
+  }
+  
+  return '/images/about4.jpg';
+};
 
   const aboutImage = getAboutImage();
 
