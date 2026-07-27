@@ -714,8 +714,6 @@ export default function SettingsTab() {
                 label="Icon"
                 value={link.icon}
                 onChange={(e) => handleSocialLinkChange(index, 'icon', e.target.value)}
-                'icon', e.target.value)}
-                'icon', e.target.value)}
                 size="small"
                 sx={textFieldStyle}
                 helperText="e.g. AiFillLinkedin"
@@ -726,128 +724,23 @@ export default function SettingsTab() {
             </Box>
           </Card>
         ))}
-        size="small"
-                sx={textFieldStyle}
-                helperText="e.g. AiFillLinkedin"
-              />
-              <IconButton onClick={() => removeSocialLink(index)} sx={{ color: isDark ? '#ff0000' : '#dc3545' }}>
-                <Delete />
-              </IconButton>
-            </Box>
-          </Card>
-        ))}
-        <Button startIcon={<Add />} size="small"
-                sx={textFieldStyle}
-                helperText="e.g. AiFillLinkedin"
-              />
-              <IconButton onClick={() => removeSocialLink(index)} sx={{ color: isDark ? '#ff0000' : '#dc3545' }}>
-                <Delete />
-              </IconButton>
-            </Box>
-          </Card>
-        ))}
-        <Button startIcon={<Add />} onClick={addSocialLink size="small"
-                sx={textFieldStyle}
-                helperText="e.g. AiFillLinkedin"
-              />
-              <IconButton onClick={() => removeSocialLink(index)} sx={{ color: isDark ? '#ff0000' : '#dc3545' }}>
-                <Delete />
-              </IconButton>
-            </Box>
-          </Card>
-        ))}
-        <Button startIcon={<Add />} onClick={addSocialLink} sx={{ color: isDark ? '#00ffff <Button startIcon={<Add />} onClick={addSocialLink} sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
-          Add Social Link
-        </Button>
-      </Paper>
-
-      {/* Stats Section onClick={addSocialLink} sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
+        <Button startIcon={<Add />} onClick={addSocialLink} sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
           Add Social Link
         </Button>
       </Paper>
 
       {/* Stats Section */}
-     } sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
-          Add Social Link
-        </Button>
-      </Paper>
-
-      {/* Stats' : '#007bff' }}>
-          Add Social Link
-        </Button>
-      </Paper>
-
-      {/* Stats Section */}
-      */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: is <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0 Section */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0 <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0Dark ? '#0f172a80f172a80' : 'white', border: isDark ? '1px solid #334155' : 'f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #f172a80' : 'white', border: isDark ? '1px solid #334155' : '' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e1px solid #e5e7eb' }}>
-        <Typography variant="e5e7eb' }}>
-        <Typography variant="subtitle1"7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight:1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mbsubtitle1" sx={{ fontWeight: 600, mb sx={{ fontWeight: 600, mb 600, mb: 2,: 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          Stats
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-          <TextField
-           : 2, color: isDark ? '#00ffff' : '#007bff' }}>
+      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
           Stats
         </Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField
             fullWidth
-            label="Projects Completed color: isDark ? '#00ffff' : '#007bff' }}>
-          Stats
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-          <TextField
-            fullWidth
-           : 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          Stats
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-          <TextField
-            fullWidth
-            label="Projects Completed fullWidth
-            label="Projects Completed label="Projects Completed"
+            label="Projects Completed"
             type="number"
             value={settings.stats.projectsCompleted}
-            onChange={(e) => handle"
-            type="number"
-            value={settings.stats.projectsCompleted}
-            onChange={(e) => handle"
-            type="number"
-            value={settings.stats.projectsCompleted}
-            onChange={(e) => handleChange('stats',"
-            type="number"
-            value={settings.stats.projectsCompleted}
-            onChange={(e) => handleChange('stats',Change('stats', 'projectsCompleted', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label="Happy Clients"
-            type="number"
-            value={settings.stats.happyClients}
-            onChange={(e) => handleChange('stats 'projectsCompleted', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label="Happy Clients"
-            type="number"
-            value={settings.stats.happyClients}
-            onChange={(e) => handleChange('stats', 'happyClients', Number(e 'projectsCompleted', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label="Happy Clients"
-            type="number"
-            value={settings.stats.happyClients}
-            onChange={(e) => handleChange('stats', 'happyClients', Number(eChange('stats', 'projectsCompleted', Number(e.target.value))}
+            onChange={(e) => handleChange('stats', 'projectsCompleted', Number(e.target.value))}
             size="small"
             sx={textFieldStyle}
           />
@@ -857,48 +750,15 @@ export default function SettingsTab() {
             type="number"
             value={settings.stats.happyClients}
             onChange={(e) => handleChange('stats', 'happyClients', Number(e.target.value))}
-', 'happyClients', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-                     size="small"
-            sx={textFieldStyle}
-          />
-         .target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            full.target.value))}
             size="small"
             sx={textFieldStyle}
           />
           <TextField
             fullWidth
-            label <TextField
-            fullWidth
-            label <TextField
-            fullWidth
-            labelWidth
             label="Lines of Code"
             type="number"
             value={settings.stats.linesOfCode}
-            onChange={(="Lines of Code"
-            type="number"
-            value={settings.stats.linesOfCode}
-            onChange={(="Lines of Code"
-            type="number"
-            value={settings.stats.linesOfCode}
-            onChange={(="Lines of Code"
-            type="number"
-            value={settings.stats.linesOfCode}
-            onChange={(e) => handlee) => handleChange('stats', 'linesOfCode', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label="Change('stats', 'linesOfCode', Number(e.target.value))}
+            onChange={(e) => handleChange('stats', 'linesOfCode', Number(e.target.value))}
             size="small"
             sx={textFieldStyle}
           />
@@ -907,214 +767,48 @@ export default function SettingsTab() {
             label="Years Experience"
             type="number"
             value={settings.stats.yearsExperience}
-            onChangee) => handleChange('stats', 'linesOfCode', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label="Years Experience"
-            type="number"
-            value={settings.stats.yearse) => handleChange('stats', 'linesOfCode', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label="Years Experience"
-            type="number"
-            value={settings.stats.yearsYears Experience"
-            type="number"
-            value={settings.stats.yearsExperience}
-            onChange={(e) => handleChangeExperience}
-            onChange={(e) => handleExperience}
             onChange={(e) => handleChange('stats', 'yearsExperience', Number(e.target.value))}
             size="small"
             sx={textFieldStyle}
-         ={(e) => handleChange('stats', 'yearsExperience', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
           />
-        </Box('stats', 'yearsExperience', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-        </Box>
-      </PaperChange('stats', 'yearsExperience', Number(e.target.value))}
-            size="small"
-            sx={textFieldStyle}
-          />
-        </Box>
-      </Paper />
         </Box>
       </Paper>
 
       {/* SEO Section */}
-      <Paper>
-      </Paper>
-
-      {/* SEO Section */}
-      <Paper sx={{ p>
-
-      {/* SEO Section */}
-      <Paper sx={{ p>
-
-      {/* SEO Section */}
-      sx={{ p: 3, mb: 4: 3, mb: 4: 3, mb: 4 <Paper sx={{ p: 3, mb: 4, backgroundColor: is, backgroundColor: isDark ? '#0, backgroundColor: isDark ? '#0, backgroundColor: isDark ? '#0f172a80' : 'whiteDark ? '#0f172a80' : 'whitef172a80' : 'whitef172a80' : 'white', border', border: isDark ? '1px solid #334', border: isDark ? '1px solid #334155' : '', border: isDark ? '1: isDark ? '1px solid #334155' : '1px solid #155' : '1px solid #1px solid #e5e7px solid #334155' : '1px solid #e5e7eb' }}>
-       e5e7eb' }}>
-       e5e7eb' }}>
-       eb' }}>
-        <Typography variant=" <Typography variant="subtitle1" <Typography variant="subtitle1" <Typography variant="subtitle1" sx={{ fontWeight: 600, mbsubtitle1" sx={{ fontWeight: 600, mb sx={{ fontWeight: 600, mb sx={{ fontWeight: 600, mb: 2, color: isDark: 2, color: isDark ? '#00ffff: 2, color: isDark ? '#00ffff' : '#007: 2, color: isDark ? '#00ffff' : '#007 ? '#00ffff' : '#007bff' }}>
+      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
           SEO
         </Typography>
-       ' : '#007bff' }}>
-          SEO
-        </Typography>
-       bff' }}>
-          SEO
-        </Typography>
-        <Box sx={{bff' }}>
-          SEO
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: <Box sx={{ display: 'grid', gridTemplateColumns: { xs: <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: '1fr', sm: '1fr 1fr' }, gap: '1fr', sm: '1fr 1fr' }, gap: sm: '1fr 1fr' }, gap: 2 }}>
-          <TextField
-            fullWidth
-            label="Meta Title"
-            value={settings.seo.title}
-            onChange={(e) => handleChange('seo', 'title', 2 }}>
-          <TextField
-            fullWidth
-            label="Meta Title"
-            value={settings.seo.title}
-            onChange={(e) => handleChange('seo', 'title', 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField
             fullWidth
             label="Meta Title"
             value={settings.seo.title}
             onChange={(e) => handleChange('seo', 'title', e.target.value)}
             size="small"
-            sx={ 2 }}>
-          <TextField
-            fullWidth
-            label="Meta Title"
-            value={settings.seo.title}
-            onChange={(e) => handleChange('seo', 'title', e.target.value)}
-            size="small"
-            sx={ e.target.value)}
-            size="small"
-            sx={textFieldStyle}
- e.target.value)}
-            size="small"
             sx={textFieldStyle}
           />
-          <TextField
-            fullWidth
-            labeltextFieldStyle}
-          />
-          <TextField
-            fullWidth
-            labeltextFieldStyle}
-          />
-          <TextField
-            fullWidth
-            label          />
           <TextField
             fullWidth
             label="Meta Description"
-            value="Meta Description"
-            value={settings="Meta Description"
             value={settings.seo.description}
-="Meta Description"
-            value={settings.seo.description}
-            onChange={(e={settings.seo.description}
-.seo.description}
-            onChange={(e) => handleChange('seo',            onChange={(e) => handleChange('seo', 'description',) => handleChange('seo', 'description', e.target.value)}
-            e.target.value)}
-            size="small"
             onChange={(e) => handleChange('seo', 'description', e.target.value)}
             size="small"
- 'description', e.target.value)}
-            size="small"
- size="small"
-            sx={text            sx={textFieldStyle}
-                     sx={textFieldStyle}
+            sx={textFieldStyle}
           />
-          <TextField
-            full            sx={textFieldStyle}
-         FieldStyle}
-          />
-          <TextField
-            full />
-          <TextField
-            fullWidth
-            label="Width
-            label="Keywords"
-            value />
           <TextField
             fullWidth
             label="Keywords"
-            valueWidth
-            label="Keywords"
-            value={settings.seo.keywords.join(',Keywords"
             value={settings.seo.keywords.join(', ')}
-            onChange={settings.seo.keywords.join(', ')}
-            onChange={(e) =>={settings.seo.keywords.join(', ')}
-            onChange={(e) => handleChange('seo', 'keywords={(e) => handleChange('seo', 'keywords handleChange('seo', 'keywords', e.target.value.split(','). ')}
-            onChange={(e) => handleChange('seo', 'keywords', e.target.value.split(',').map(s => s', e.target.value.split(',').map(s => s.trim()).filter(B', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextFieldmap(s => s.trim()).filter(Boolean))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextField.trim()).filter(Boolean))}
-            size="small"
-            sx={textFieldStyle}
-          />
-          <TextFieldoolean))}
+            onChange={(e) => handleChange('seo', 'keywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
             size="small"
             sx={textFieldStyle}
           />
           <TextField
-            fullWidth
-            label="OG Image URL"
-            value={settings
-            fullWidth
-            label="OG Image URL"
-            value={settings.seo.og
-            fullWidth
-            label="OG Image URL"
-            value={settings.seo.og
             fullWidth
             label="OG Image URL"
             value={settings.seo.ogImage}
-            onChange={(e).seo.ogImage}
-            onChange={(e) => handleChange('seImage}
-            onChange={(e) =>Image}
-            onChange={(e) => => handleChange('seo', 'ogo', 'ogImage', e.target handleChange('seo', 'ogImage', e.target.value)}
-            size handleChange('seo', 'ogImage', e.target.value)}
-            sizeImage', e.target.value)}
-            size="small"
-            sx={textFieldStyle}
-          />
-        </Box>
-      </Paper>
-
-      {/* Save="small"
-            sx={textFieldStyle}
-          />
-        </Box>
-      </Paper>
-
-      {/* Save Button="small"
-            sx={textFieldStyle}
-          />
-        </Box>
-      </Paper>
-
-      {/* Save Button */}
-      <Box.value)}
+            onChange={(e) => handleChange('seo', 'ogImage', e.target.value)}
             size="small"
             sx={textFieldStyle}
           />
@@ -1122,179 +816,48 @@ export default function SettingsTab() {
       </Paper>
 
       {/* Save Button */}
-      <Box sx={{ display: Button */}
-      <Box sx={{ display: */}
-      <Box sx={{ display: 'flex', sx={{ display: 'flex', justifyContent 'flex', justifyContent: 'flex-end 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
- justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-: 'flex-end' }}>
-        <Button
-          variant="contained"
-' }}>
-        <Button
-          variant="contained"
-          startIcon          startIcon={<Save />}
-                   startIcon={<Save />}
-                   startIcon={<Save />}
-          onClick={handleSubmit={<Save />}
-          onClick={handleSubmit onClick={handleSubmit}
-          disabled={ onClick={handleSubmit}
+          startIcon={<Save />}
+          onClick={handleSubmit}
           disabled={saving}
-         }
-          disabled={saving}
-         }
-          disabled={saving}
-         saving}
           sx={{
-            background sx={{
-            background: isDark ? sx={{
-            background: isDark ? sx={{
-            background: isDark ? 'linear-gradient(: isDark ? 'linear-gradient( 'linear-gradient(135deg, # 'linear-gradient(135deg, #135deg, #00ffff, #00b3b3)' : '135deg, #00ffff, #00b3b3)' : 'linear00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
+            background: isDark ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
             borderRadius: 1,
             '&:hover': {
-             00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
-            borderRadius: 1,
-            '&:hover': {
-             linear-gradient(135deg, #007bff, #0056b3)',
-            borderRadius: 1,
-            '&:hover': {
-              background: isDark ? 'linear-gradient(135deg,-gradient(135deg, #007bff, #0056b3)',
-            borderRadius: 1,
-            '&:hover': {
-              background: isDark background: isDark ? 'linear-gradient(135deg, #00b3b3, #008080)' : background: isDark ? 'linear-gradient(135deg, #00b3b3, # #00b3b3, #008080)' : 'linear-gradient( ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient( 'linear-gradient(135deg, #0056b3008080)' : 'linear-gradient(135deg, #0056b3135deg, #0056b3135deg, #0056b3,,,, #004080)',
-            },
-            '&.Mui-disabled': {
-              background: isDark #004080)',
-            },
-            ' #004080)',
-            },
-            '&.Mui-disabled': {
-              background: isDark ? '#334155 #004080)',
+              background: isDark ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient(135deg, #0056b3, #004080)',
             },
             '&.Mui-disabled': {
               background: isDark ? '#334155' : '#e5e7eb',
- ? '#334155' : '#e5e7eb',
               color: isDark ? '#94a3b8' : '#94a3b8',
             },
           }}
-        >
-         &.Mui-disabled': {
-              background: isDark ? '#334155' : '#e5e7eb',
-              color: isDark ? '#94a3b8' : '#94a3b8',
-            },
-         ' : '#e5e7eb',
-              color: isDark ? '#94a3b8' : '#94a3b8',
-            },
-          }}
-        >
-          {saving ? <CircularProgress size={24} color="inherit"              color: isDark ? '#94a3b8' : '#94a3b8',
-            },
-          }}
-        >
-          {saving ? <CircularProgress size={24} {saving ? <CircularProgress size={24} color="inherit" /> : 'Save Settings'}
-        </Button>
-      </Box>
-
-      {/* }}
         >
           {saving ? <CircularProgress size={24} color="inherit" /> : 'Save Settings'}
         </Button>
       </Box>
 
-      /> : 'Save Settings'}
-        </Button>
-      </ color="inherit" /> : 'Save Settings'}
-        </Button>
-      </ {/* Snackbars */}
-      <Sn Snackbars */}
-      <Snackbar
-        open={!!errorBox>
-
       {/* Snackbars */}
       <Snackbar
-       Box>
-
-      {/* Snackbars */}
-      <Snackbar
-        open={!!errorackbar
         open={!!error}
         autoHideDuration={6000}
-        onClose open={!!error}
-        autoHide}
-        autoHideDuration={6000}
         onClose={() => setError('')}
-        anchorOrigin={{ vertical}
-        autoHideDuration={6000}
-        onClose={() => setError={() => setError('')}
-       Duration={6000}
-        onClose={() => setError('')}
-        anchorOrigin={{ vertical('')}
-        anchorOrigin={{ vertical: 'bottom', anchorOrigin={{ vertical: 'bottom',: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert severity: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity horizontal: 'right' }}
-      >
-        <Alert severity="error" on horizontal: 'right' }}
-      >
-        <Alert severity="error" on="error" onClose={() => setError('')}>
+        <Alert severity="error" onClose={() => setError('')}>
           {error}
-="error" onClose={() => setError('')}>
-          {error}
-       Close={() => setError('')}>
-Close={() => setError('')}>
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!! </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!!          {error}
         </Alert>
       </Snackbar>
       <Snackbar
         open={!!success}
-        auto          {error}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={!!success}
-        autosuccess}
         autoHideDuration={6000}
-        onClose={() => setsuccess}
-        autoHideDuration={6000}
-        onClose={() => setHideDuration={6000}
-        onClose={() => setSuccess('')}
-HideDuration={6000}
         onClose={() => setSuccess('')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-     Success('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-     Success('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert severity="success" onClose={() => setSuccess('')        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity="success" onClose={() => setSuccess('')}>
-          {success >
         <Alert severity="success" onClose={() => setSuccess('')}>
           {success}
         </Alert>
-      </Sn >
-        <Alert severity="success" onClose={() => setSuccess('')}>
-          {success}
-        </Alert}>
-          {success}
-        </Alert}
-        </Alert>
-      </Snackbar>
-    </Box>
- ackbar>
-    </Box>
- >
       </Snackbar>
     </Box>
   );
