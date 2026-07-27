@@ -125,12 +125,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
     image: '/images/about4.jpg'
   },
   contact: {
-    email: 'amlakieab4@gmail.com',
+    email: 'amlakieab23@gmail.com',
     phone: '+251 9 12 43 65 73',
     location: 'Addis Ababa, Ethiopia',
     socialLinks: [
-      { platform: 'GitHub', url: 'https://github.com/amlakie', icon: 'AiFillGithub' },
-      { platform: 'LinkedIn', url: 'https://linkedin.com/in/amlakie', icon: 'AiFillLinkedin' },
+      { platform: 'GitHub', url: 'https://github.com/Amlakab', icon: 'AiFillGithub' },
+      { platform: 'LinkedIn', url: 'https://www.linkedin.com/in/amlakie-abebaw-b6a308329/', icon: 'AiFillLinkedin' },
       { platform: 'Email', url: 'mailto:amlakieab4@gmail.com', icon: 'IoMdMail' }
     ]
   },
@@ -1079,7 +1079,7 @@ const Portfolio = () => {
                 </div>
               </div>
             </div>
-            <p style={{ fontSize: '1rem', opacity: 0.7, marginBottom: '30px', color: '#fff' }}>Designed with <span style={{ color: '#ff4d4d', margin: '0 5px' }}>❤</span> by <a href="https://www.linkedin.com/in/Amlakie" target="_blank" rel="noopener noreferrer" style={{ color: colors.primary, fontWeight: 600, textDecoration: 'none' }}>Amlakie Abebaw</a></p>
+            <p style={{ fontSize: '1rem', opacity: 0.7, marginBottom: '30px', color: '#fff' }}>Designed with <span style={{ color: '#ff4d4d', margin: '0 5px' }}>❤</span> by <a href="https://www.linkedin.com/in/amlakie-abebaw-b6a308329/" target="_blank" rel="noopener noreferrer" style={{ color: colors.primary, fontWeight: 600, textDecoration: 'none' }}>Amlakie Abebaw</a></p>
           </motion.div>
         </div>
         <motion.button whileHover={{ scale: 1.1, boxShadow: `0 5px 15px rgba(255, 255, 255, 0.3)` }} whileTap={{ scale: 0.9 }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: 'none', padding: '12px 18px', borderRadius: '50px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', backdropFilter: 'blur(5px)' }} aria-label="Back to top" onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
