@@ -151,11 +151,11 @@ const DEFAULT_SKILLS: Skill[] = [
   { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
 ];
 
-// ===== Helper: get image URL - Works like admin panel =====
+// ===== IMPROVED: Helper to get image URL - Works for all image types =====
 const getImageUrl = (item: any): string | null => {
   if (!item) return null;
   
-  // For Projects - check imageData
+  // Check for imageData (projects, about, blog)
   if (item.imageData?.data) {
     let base64 = '';
     if (typeof item.imageData.data === 'string') {
@@ -164,17 +164,23 @@ const getImageUrl = (item: any): string | null => {
       base64 = item.imageData.data.$binary.base64;
     } else if (item.imageData.data?.data) {
       try {
-        base64 = Buffer.from(item.imageData.data.data).toString('base64');
+        if (typeof item.imageData.data.data === 'string') {
+          base64 = item.imageData.data.data;
+        } else if (item.imageData.data.data instanceof Buffer || Array.isArray(item.imageData.data.data)) {
+          base64 = Buffer.from(item.imageData.data.data).toString('base64');
+        }
       } catch (e) {
         console.warn('Failed to convert imageData:', e);
       }
+    } else if (item.imageData.data instanceof Buffer) {
+      base64 = item.imageData.data.toString('base64');
     }
     if (base64) {
       return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
   
-  // For Testimonials - check avatarData
+  // Check for avatarData (testimonials)
   if (item.avatarData?.data) {
     let base64 = '';
     if (typeof item.avatarData.data === 'string') {
@@ -183,58 +189,69 @@ const getImageUrl = (item: any): string | null => {
       base64 = item.avatarData.data.$binary.base64;
     } else if (item.avatarData.data?.data) {
       try {
-        base64 = Buffer.from(item.avatarData.data.data).toString('base64');
+        if (typeof item.avatarData.data.data === 'string') {
+          base64 = item.avatarData.data.data;
+        } else if (item.avatarData.data.data instanceof Buffer || Array.isArray(item.avatarData.data.data)) {
+          base64 = Buffer.from(item.avatarData.data.data).toString('base64');
+        }
       } catch (e) {
         console.warn('Failed to convert avatarData:', e);
       }
+    } else if (item.avatarData.data instanceof Buffer) {
+      base64 = item.avatarData.data.toString('base64');
     }
     if (base64) {
       return `data:${item.avatarData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
   
-  // For About image - check imageData
-  if (item.imageData?.data) {
-    let base64 = '';
-    if (typeof item.imageData.data === 'string') {
-      base64 = item.imageData.data;
-    } else if (item.imageData.data?.$binary?.base64) {
-      base64 = item.imageData.data.$binary.base64;
-    } else if (item.imageData.data?.data) {
-      try {
-        base64 = Buffer.from(item.imageData.data.data).toString('base64');
-      } catch (e) {
-        console.warn('Failed to convert imageData:', e);
-      }
+  // Handle image string (could be data URL or path)
+  if (item.image) {
+    if (item.image.startsWith('data:image')) {
+      return item.image;
     }
-    if (base64) {
-      return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
+    if (item.image.startsWith('/uploads/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${item.image}`;
     }
-  }
-  
-  // Fallback: if image/avatar is a data URL string
-  if (item.image?.startsWith('data:image')) {
+    if (item.image.startsWith('/images/')) {
+      return item.image;
+    }
     return item.image;
   }
-  if (item.avatar?.startsWith('data:image')) {
+  
+  // Handle avatar string
+  if (item.avatar) {
+    if (item.avatar.startsWith('data:image')) {
+      return item.avatar;
+    }
+    if (item.avatar.startsWith('/uploads/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${item.avatar}`;
+    }
+    if (item.avatar.startsWith('/images/')) {
+      return item.avatar;
+    }
     return item.avatar;
   }
   
-  // Fallback: return the image/avatar string path or null
-  return item.image || item.avatar || null;
+  return null;
 };
 
-// ===== Helper: get profile image URL =====
+// ===== IMPROVED: Helper to get profile image URL =====
 const getProfileImageUrl = (profileImage: string | any): string => {
   if (!profileImage) return '/images/placeholder.jpg';
   
-  // If it's a string
+  // If it's a string URL
   if (typeof profileImage === 'string') {
     if (profileImage.startsWith('data:')) return profileImage;
     if (profileImage.startsWith('http')) return profileImage;
-    if (profileImage.startsWith('/uploads/') || profileImage.startsWith('/images/')) {
+    if (profileImage.startsWith('/uploads/')) {
       const base = process.env.NEXT_PUBLIC_API_URL || '';
       return `${base}${profileImage}`;
+    }
+    if (profileImage.startsWith('/images/')) {
+      return profileImage;
     }
     return profileImage;
   }
@@ -248,10 +265,16 @@ const getProfileImageUrl = (profileImage: string | any): string => {
       base64 = profileImage.data.$binary.base64;
     } else if (profileImage.data?.data) {
       try {
-        base64 = Buffer.from(profileImage.data.data).toString('base64');
+        if (typeof profileImage.data.data === 'string') {
+          base64 = profileImage.data.data;
+        } else if (profileImage.data.data instanceof Buffer || Array.isArray(profileImage.data.data)) {
+          base64 = Buffer.from(profileImage.data.data).toString('base64');
+        }
       } catch (e) {
         console.warn('Failed to convert profile image:', e);
       }
+    } else if (profileImage.data instanceof Buffer) {
+      base64 = profileImage.data.toString('base64');
     }
     if (base64) {
       return `data:${profileImage.contentType || 'image/jpeg'};base64,${base64}`;
@@ -390,6 +413,7 @@ const Portfolio = () => {
         if (results[6].status === 'fulfilled') {
           const data = extractData(results[6].value);
           if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+            console.log('📥 Settings loaded:', data);
             setSettings(data);
           }
         }
@@ -463,8 +487,49 @@ const Portfolio = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections, activeSection]);
 
+  // ===== Get names from settings =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
-  const profiles = settings?.hero?.profileImages?.length ? settings.hero.profileImages : ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  
+  // ===== Get profile images from settings =====
+  const getProfileImages = (): string[] => {
+    if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+    
+    // Check if profileImagesData exists (from backend)
+    if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
+      // Convert each image data to URL
+      return settings.hero.profileImagesData.map((img: any) => getProfileImageUrl(img));
+    }
+    
+    // Check if profileImages exists (URLs)
+    if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
+      return settings.hero.profileImages.map((img: string) => getProfileImageUrl(img));
+    }
+    
+    return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  };
+
+  const profiles = getProfileImages();
+
+  // ===== Get about image from settings =====
+  const getAboutImage = (): string => {
+    if (!settings?.about) return '/images/about4.jpg';
+    
+    // Check for imageData
+    if (settings.about.imageData) {
+      const url = getImageUrl({ imageData: settings.about.imageData });
+      if (url) return url;
+    }
+    
+    // Check for image URL
+    if (settings.about.image) {
+      const url = getImageUrl({ image: settings.about.image });
+      if (url) return url;
+    }
+    
+    return '/images/about4.jpg';
+  };
+
+  const aboutImage = getAboutImage();
 
   useEffect(() => {
     const nameInterval = setInterval(() => {
@@ -565,7 +630,15 @@ const Portfolio = () => {
               <motion.div initial={{ opacity: 0, x: 100, rotate: 5 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={styles.heroImageContainer} style={{ position: 'relative', display: 'flex', justifyContent: 'center', perspective: '1000px' }}>
                 <AnimatePresence mode="wait">
                   <motion.div key={profileIndex} className={styles.heroImageWrapper} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.6 }} style={{ position: 'relative', width: '100%', maxWidth: '380px', height: '380px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)', transformStyle: 'preserve-3d' }}>
-                    <img src={getProfileImageUrl(profiles[profileIndex])} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img 
+                      src={profiles[profileIndex] || '/images/placeholder.jpg'} 
+                      alt="Profile" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        console.error('Failed to load profile image:', profiles[profileIndex]);
+                        (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                      }}
+                    />
                     <div className={styles.heroImageBg} style={{ position: 'absolute', top: '20px', left: '20px', width: 'calc(100% - 40px)', height: 'calc(100% - 40px)', border: `5px solid ${colors.primary}`, borderRadius: '30px', zIndex: -1, transform: 'rotate(5deg)' }} />
                   </motion.div>
                 </AnimatePresence>
@@ -588,7 +661,15 @@ const Portfolio = () => {
             <div className={styles.aboutGrid}>
               <div className={styles.aboutImageWrapper}>
                 <motion.div whileHover={{ rotate: 2 }} transition={{ type: 'spring' }} className={styles.aboutImageContainer} style={{ position: 'relative', width: '100%', maxWidth: '300px', height: '400px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)', margin: '0 auto', border: `2px solid ${colors.primary}` }}>
-                  <img src={getImageUrl(settings?.about) || '/images/about4.jpg'} alt="About" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img 
+                    src={aboutImage} 
+                    alt="About" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      console.error('Failed to load about image:', aboutImage);
+                      (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                    }}
+                  />
                 </motion.div>
               </div>
               <div className={styles.aboutContent}>
@@ -723,174 +804,177 @@ const Portfolio = () => {
       </section>
 
       {/* ===== WORK ===== */}
-<section id="work" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(5), color: colors.textPrimary }}>
-  <div className={styles.container}>
-    <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
-      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
-          <FaLaptopCode color={colors.primary} /> My Work
-          <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
-        </h2>
-      </div>
-      
-      <div className={styles.projectFilter}>
-        {['All', 'Web', 'Mobile', 'Design', 'Full Stack'].map((filter) => (
-          <motion.button 
-            key={filter} 
-            whileHover={{ scale: 1.05, backgroundColor: colors.primary, color: '#ffffff' }} 
-            whileTap={{ scale: 0.95 }} 
-            className={styles.filterBtn} 
-            style={{ 
-              backgroundColor: 'transparent', 
-              color: colors.textPrimary, 
-              border: `1px solid ${colors.primary}`, 
-              padding: '8px 20px', 
-              borderRadius: '50px', 
-              fontWeight: 500, 
-              cursor: 'pointer', 
-              fontSize: '0.9rem', 
-              transition: 'all 0.3s ease' 
-            }}
-          >
-            {filter}
-          </motion.button>
-        ))}
-      </div>
-      
-      <div className={styles.projectGrid}>
-        {projects.length > 0 ? (() => {
-          // Group projects into rows of 3
-          const rows = [];
-          for (let i = 0; i < projects.length; i += 3) {
-            rows.push(projects.slice(i, i + 3));
-          }
-          
-          return rows.map((row, rowIndex) => (
-            <div key={rowIndex} className={styles.projectRow}>
-              {row.map((project, index) => {
-                const globalIndex = rowIndex * 3 + index;
-                const isWide = globalIndex % 3 === 0;
-                return (
-                  <motion.div 
-                    key={project._id} 
-                    className={`${styles.projectCard} ${isWide ? styles.wide : styles.narrow}`} 
-                    initial={{ opacity: 0, scale: 0.9 }} 
-                    whileInView={{ opacity: 1, scale: 1 }} 
-                    viewport={{ once: true }} 
-                    transition={{ duration: 0.5, delay: globalIndex * 0.1 }} 
-                    whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} 
-                    style={{ 
-                      cursor: 'pointer', 
-                      backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
-                      borderRadius: '20px', 
-                      overflow: 'hidden', 
-                      boxShadow: `0 10px 30px ${colors.shadow}`, 
-                      display: 'flex', 
-                      flexDirection: 'column', 
-                      transition: 'all 0.3s ease' 
-                    }}
-                  >
-                    <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
-                      <img 
-                        src={getImageUrl(project) || '/images/placeholder.jpg'} 
-                        alt={project.title} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                      />
-                      <motion.div 
-                        className={styles.projectOverlay} 
-                        style={{ 
-                          position: 'absolute', 
-                          top: 0, 
-                          left: 0, 
-                          width: '100%', 
-                          height: '100%', 
-                          background: `linear-gradient(to top, ${colors.primary}ee, transparent)`, 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          opacity: 0, 
-                          transition: 'opacity 0.5s ease-in-out' 
-                        }} 
-                        whileHover={{ opacity: 1 }}
-                      >
-                        {project.liveUrl && (
-                          <motion.a 
-                            href={project.liveUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            whileHover={{ scale: 1.1 }} 
-                            whileTap={{ scale: 0.9 }} 
-                            style={{ 
-                              background: colors.primary, 
-                              color: '#ffffff', 
-                              border: 'none', 
-                              padding: '12px 25px', 
-                              borderRadius: '50px', 
-                              fontWeight: 600, 
-                              cursor: 'pointer', 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              fontSize: '0.9rem', 
-                              textDecoration: 'none' 
-                            }}
-                          >
-                            <FiExternalLink style={{ marginRight: '8px' }} /> View Project
-                          </motion.a>
-                        )}
-                      </motion.div>
-                    </div>
-                    
-                    <div className={styles.projectInfo} style={{ padding: '20px', flex: 1 }}>
-                      <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
-                        {project.title}
-                      </h3>
-                      <p style={{ marginBottom: '15px', color: colors.textPrimary, fontSize: '0.95rem', lineHeight: 1.5 }}>
-                        {project.description}
-                      </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div className={styles.projectTags}>
-                          {project.tags.map((tag, i) => (
-                            <span 
-                              key={i} 
-                              style={{ 
-                                backgroundColor: colors.primary + '20', 
-                                color: colors.primary, 
-                                padding: '5px 10px', 
-                                borderRadius: '50px', 
-                                fontSize: '0.75rem', 
-                                fontWeight: 500 
-                              }}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        {project.github && (
-                          <a 
-                            href={project.github} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            style={{ color: colors.textPrimary, fontSize: '1.5rem', marginLeft: '15px' }}
-                          >
-                            <FiGithub />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+      <section id="work" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(5), color: colors.textPrimary }}>
+        <div className={styles.container}>
+          <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
+            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+                <FaLaptopCode color={colors.primary} /> My Work
+                <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
+              </h2>
             </div>
-          ));
-        })() : (
-          <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>
-            No projects data available
-          </p>
-        )}
-      </div>
-    </motion.div>
-  </div>
-</section>
+            
+            <div className={styles.projectFilter}>
+              {['All', 'Web', 'Mobile', 'Design', 'Full Stack'].map((filter) => (
+                <motion.button 
+                  key={filter} 
+                  whileHover={{ scale: 1.05, backgroundColor: colors.primary, color: '#ffffff' }} 
+                  whileTap={{ scale: 0.95 }} 
+                  className={styles.filterBtn} 
+                  style={{ 
+                    backgroundColor: 'transparent', 
+                    color: colors.textPrimary, 
+                    border: `1px solid ${colors.primary}`, 
+                    padding: '8px 20px', 
+                    borderRadius: '50px', 
+                    fontWeight: 500, 
+                    cursor: 'pointer', 
+                    fontSize: '0.9rem', 
+                    transition: 'all 0.3s ease' 
+                  }}
+                >
+                  {filter}
+                </motion.button>
+              ))}
+            </div>
+            
+            <div className={styles.projectGrid}>
+              {projects.length > 0 ? (() => {
+                const rows = [];
+                for (let i = 0; i < projects.length; i += 3) {
+                  rows.push(projects.slice(i, i + 3));
+                }
+                
+                return rows.map((row, rowIndex) => (
+                  <div key={rowIndex} className={styles.projectRow}>
+                    {row.map((project, index) => {
+                      const globalIndex = rowIndex * 3 + index;
+                      const isWide = globalIndex % 3 === 0;
+                      return (
+                        <motion.div 
+                          key={project._id} 
+                          className={`${styles.projectCard} ${isWide ? styles.wide : styles.narrow}`} 
+                          initial={{ opacity: 0, scale: 0.9 }} 
+                          whileInView={{ opacity: 1, scale: 1 }} 
+                          viewport={{ once: true }} 
+                          transition={{ duration: 0.5, delay: globalIndex * 0.1 }} 
+                          whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} 
+                          style={{ 
+                            cursor: 'pointer', 
+                            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
+                            borderRadius: '20px', 
+                            overflow: 'hidden', 
+                            boxShadow: `0 10px 30px ${colors.shadow}`, 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            transition: 'all 0.3s ease' 
+                          }}
+                        >
+                          <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
+                            <img 
+                              src={getImageUrl(project) || '/images/placeholder.jpg'} 
+                              alt={project.title} 
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={(e) => {
+                                console.error('Failed to load project image:', project.title);
+                                (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                              }}
+                            />
+                            <motion.div 
+                              className={styles.projectOverlay} 
+                              style={{ 
+                                position: 'absolute', 
+                                top: 0, 
+                                left: 0, 
+                                width: '100%', 
+                                height: '100%', 
+                                background: `linear-gradient(to top, ${colors.primary}ee, transparent)`, 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                opacity: 0, 
+                                transition: 'opacity 0.5s ease-in-out' 
+                              }} 
+                              whileHover={{ opacity: 1 }}
+                            >
+                              {project.liveUrl && (
+                                <motion.a 
+                                  href={project.liveUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  whileHover={{ scale: 1.1 }} 
+                                  whileTap={{ scale: 0.9 }} 
+                                  style={{ 
+                                    background: colors.primary, 
+                                    color: '#ffffff', 
+                                    border: 'none', 
+                                    padding: '12px 25px', 
+                                    borderRadius: '50px', 
+                                    fontWeight: 600, 
+                                    cursor: 'pointer', 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    fontSize: '0.9rem', 
+                                    textDecoration: 'none' 
+                                  }}
+                                >
+                                  <FiExternalLink style={{ marginRight: '8px' }} /> View Project
+                                </motion.a>
+                              )}
+                            </motion.div>
+                          </div>
+                          
+                          <div className={styles.projectInfo} style={{ padding: '20px', flex: 1 }}>
+                            <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
+                              {project.title}
+                            </h3>
+                            <p style={{ marginBottom: '15px', color: colors.textPrimary, fontSize: '0.95rem', lineHeight: 1.5 }}>
+                              {project.description}
+                            </p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div className={styles.projectTags}>
+                                {project.tags.map((tag, i) => (
+                                  <span 
+                                    key={i} 
+                                    style={{ 
+                                      backgroundColor: colors.primary + '20', 
+                                      color: colors.primary, 
+                                      padding: '5px 10px', 
+                                      borderRadius: '50px', 
+                                      fontSize: '0.75rem', 
+                                      fontWeight: 500 
+                                    }}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                              {project.github && (
+                                <a 
+                                  href={project.github} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  style={{ color: colors.textPrimary, fontSize: '1.5rem', marginLeft: '15px' }}
+                                >
+                                  <FiGithub />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ));
+              })() : (
+                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>
+                  No projects data available
+                </p>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* ===== TESTIMONIALS ===== */}
       <section id="testimonials" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(6), color: colors.textPrimary }}>
@@ -907,7 +991,15 @@ const Portfolio = () => {
                 <motion.div key={testimonial._id} className={styles.testimonialCard} whileHover={{ scale: 1.02, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', padding: '40px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', minWidth: '80%', scrollSnapAlign: 'start' }}>
                   <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '25px' }}>
                     <div className={styles.testimonialAvatar} style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginRight: '25px', border: `3px solid ${colors.primary}`, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)', position: 'relative' }}>
-                      <img src={getImageUrl(testimonial) || '/images/placeholder.jpg'} alt={testimonial.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img 
+                        src={getImageUrl(testimonial) || '/images/placeholder.jpg'} 
+                        alt={testimonial.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          console.error('Failed to load testimonial avatar:', testimonial.name);
+                          (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                        }}
+                      />
                     </div>
                     <div className={styles.testimonialAuthor}>
                       <h4 style={{ fontSize: '1.4rem', marginBottom: '5px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{testimonial.name}</h4>
@@ -947,7 +1039,15 @@ const Portfolio = () => {
                 <div key={post._id} className={styles.blogCard}>
                   <motion.div className={styles.blogCardInner} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)', marginBottom: '30px', height: '100%' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} whileHover={{ y: -10, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }}>
                     <div className={styles.blogImage} style={{ position: 'relative', height: '250px', overflow: 'hidden' }}>
-                      <img src={getImageUrl(post) || '/images/placeholder.jpg'} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img 
+                        src={getImageUrl(post) || '/images/placeholder.jpg'} 
+                        alt={post.title} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          console.error('Failed to load blog image:', post.title);
+                          (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                        }}
+                      />
                       <div className={styles.blogCategory} style={{ position: 'absolute', top: '20px', right: '20px', background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', padding: '6px 18px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)' }}>{post.category}</div>
                     </div>
                     <div className={styles.blogContent} style={{ padding: '30px' }}>
