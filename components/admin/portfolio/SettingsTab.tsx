@@ -89,7 +89,52 @@ const getImageUrl = (item: any): string | null => {
     return item.image;
   }
 
+  if (item.image?.startsWith('/uploads/')) {
+    const base = process.env.NEXT_PUBLIC_API_URL || '';
+    return `${base}${item.image}`;
+  }
+
+  if (item.image?.startsWith('/images/')) {
+    return item.image;
+  }
+
   return item.image || null;
+};
+
+const getProfileImageUrl = (profileImage: string | any): string | null => {
+  if (!profileImage) return null;
+
+  if (typeof profileImage === 'string') {
+    if (profileImage.startsWith('data:')) return profileImage;
+    if (profileImage.startsWith('/uploads/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${profileImage}`;
+    }
+    if (profileImage.startsWith('/images/')) {
+      return profileImage;
+    }
+    return profileImage;
+  }
+
+  if (profileImage?.data) {
+    let base64 = '';
+    if (typeof profileImage.data === 'string') {
+      base64 = profileImage.data;
+    } else if (profileImage.data?.$binary?.base64) {
+      base64 = profileImage.data.$binary.base64;
+    } else if (profileImage.data?.data) {
+      try {
+        base64 = Buffer.from(profileImage.data.data).toString('base64');
+      } catch (e) {
+        console.warn('Failed to convert profile image:', e);
+      }
+    }
+    if (base64) {
+      return `data:${profileImage.contentType || 'image/jpeg'};base64,${base64}`;
+    }
+  }
+
+  return null;
 };
 
 export default function SettingsTab() {
@@ -121,33 +166,28 @@ export default function SettingsTab() {
           const preview = getImageUrl(data.about);
           if (preview) setAboutImagePreview(preview);
         } else if (data.about?.image) {
-          setAboutImagePreview(data.about.image);
+          if (data.about.image.startsWith('/uploads/')) {
+            const base = process.env.NEXT_PUBLIC_API_URL || '';
+            setAboutImagePreview(`${base}${data.about.image}`);
+          } else {
+            setAboutImagePreview(data.about.image);
+          }
         }
 
         if (data.hero?.profileImagesData && data.hero.profileImagesData.length > 0) {
           const previews = data.hero.profileImagesData.map((img: any) => {
-            if (img.data) {
-              let base64 = '';
-              if (typeof img.data === 'string') {
-                base64 = img.data;
-              } else if (img.data?.$binary?.base64) {
-                base64 = img.data.$binary.base64;
-              } else if (img.data?.data) {
-                try {
-                  base64 = Buffer.from(img.data.data).toString('base64');
-                } catch (e) {
-                  console.warn('Failed to convert profile image:', e);
-                }
-              }
-              if (base64) {
-                return `data:${img.contentType || 'image/jpeg'};base64,${base64}`;
-              }
-            }
-            return null;
+            return getProfileImageUrl(img);
           });
           setProfileImagePreviews(previews.filter((p: string | null) => p !== null));
         } else if (data.hero?.profileImages && data.hero.profileImages.length > 0) {
-          setProfileImagePreviews(data.hero.profileImages);
+          const previews = data.hero.profileImages.map((img: string) => {
+            if (img.startsWith('/uploads/')) {
+              const base = process.env.NEXT_PUBLIC_API_URL || '';
+              return `${base}${img}`;
+            }
+            return img;
+          });
+          setProfileImagePreviews(previews);
         }
       }
     } catch (err: any) {
@@ -295,7 +335,6 @@ export default function SettingsTab() {
     <Box>
       <Typography variant="h6" sx={{ mb: 3, color: isDark ? '#ccd6f6' : '#333' }}>Site Settings</Typography>
 
-      {/* Hero Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Hero Section</Typography>
 
@@ -304,7 +343,14 @@ export default function SettingsTab() {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {profileImagePreviews.map((preview, index) => (
               <Box key={index} sx={{ position: 'relative', width: 100, height: 100, borderRadius: 2, overflow: 'hidden', border: `2px solid ${isDark ? '#334155' : '#e5e7eb'}` }}>
-                <img src={preview} alt={`Profile ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img 
+                  src={preview || '/images/placeholder.jpg'} 
+                  alt={`Profile ${index + 1}`} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                  }}
+                />
                 <IconButton
                   size="small"
                   onClick={() => removeProfileImage(index)}
@@ -359,7 +405,6 @@ export default function SettingsTab() {
         </Box>
       </Paper>
 
-      {/* About Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>About Section</Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -367,7 +412,14 @@ export default function SettingsTab() {
             <Box sx={{ position: 'relative', width: 120, height: 120, borderRadius: 2, overflow: 'hidden', border: `2px dashed ${isDark ? '#334155' : '#e5e7eb'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={() => document.getElementById('about-image')?.click()}>
               {aboutImagePreview ? (
                 <>
-                  <img src={aboutImagePreview} alt="About" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img 
+                    src={aboutImagePreview} 
+                    alt="About" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                    }}
+                  />
                   <IconButton
                     size="small"
                     onClick={(e) => { e.stopPropagation(); removeAboutImage(); }}
@@ -395,7 +447,6 @@ export default function SettingsTab() {
         </Box>
       </Paper>
 
-      {/* Contact Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Contact</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -418,7 +469,6 @@ export default function SettingsTab() {
         <Button startIcon={<Add />} onClick={addSocialLink} sx={{ color: isDark ? '#00ffff' : '#007bff' }}>Add Social Link</Button>
       </Paper>
 
-      {/* Stats Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Stats</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -429,7 +479,6 @@ export default function SettingsTab() {
         </Box>
       </Paper>
 
-      {/* SEO Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>SEO</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
