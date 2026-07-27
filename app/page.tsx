@@ -503,7 +503,6 @@ const Portfolio = () => {
       const urls = settings.hero.profileImagesData
         .map((img: any) => {
           // Pass the entire image object to getProfileImageUrl
-          // The image object might have { data, contentType, fileName } structure
           const url = getProfileImageUrl(img);
           console.log('📸 Converted profile image:', url ? 'Success' : 'Failed');
           return url;
