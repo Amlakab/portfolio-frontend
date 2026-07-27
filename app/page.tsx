@@ -363,15 +363,31 @@ const getSocialIcon = (iconName: string): JSX.Element => {
   return icons[iconName] || <FiExternalLink size={20} />;
 };
 
-// ===== Extract data helper =====
+// ===== FIXED: Extract data helper =====
 const extractData = (response: any): any => {
   try {
+    // Log the response structure for debugging
+    console.log('🔍 Response structure:', {
+      hasData: !!response?.data,
+      hasDataData: !!response?.data?.data,
+      hasDataDataData: !!response?.data?.data?.data,
+      hasSuccess: !!response?.data?.success
+    });
+    
+    // Check for different response structures
+    if (response?.data?.data?.data !== undefined) {
+      // Structure: { data: { data: { data: [...] } } }
+      return response.data.data.data;
+    }
     if (response?.data?.data !== undefined) {
+      // Structure: { data: { data: [...] } }
       return response.data.data;
     }
     if (response?.data !== undefined) {
+      // Structure: { data: [...] }
       return response.data;
     }
+    // Fallback: return the response itself
     return response || [];
   } catch (error) {
     console.error('Error extracting data:', error);
@@ -427,9 +443,12 @@ const Portfolio = () => {
 
         // Extract and set projects
         const projectsData = extractData(projectsRes);
+        console.log('📦 Projects data extracted:', projectsData);
         if (Array.isArray(projectsData) && projectsData.length > 0) {
           console.log('📦 Projects loaded:', projectsData.length);
           setProjects(projectsData);
+        } else {
+          console.warn('⚠️ No projects data found or invalid format');
         }
 
         // Extract and set experiences
@@ -455,9 +474,12 @@ const Portfolio = () => {
 
         // Extract and set blog posts
         const blogPostsData = extractData(blogPostsRes);
+        console.log('📦 Blog posts data extracted:', blogPostsData);
         if (Array.isArray(blogPostsData) && blogPostsData.length > 0) {
           console.log('📦 Blog posts loaded:', blogPostsData.length);
           setBlogPosts(blogPostsData);
+        } else {
+          console.warn('⚠️ No blog posts data found or invalid format');
         }
 
         // Extract and set skills
@@ -472,10 +494,13 @@ const Portfolio = () => {
 
         // Extract and set settings
         const settingsData = extractData(settingsRes);
+        console.log('📦 Settings data extracted:', settingsData);
         if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
           console.log('📦 Settings loaded from database');
           console.log('📸 Settings hero:', settingsData.hero);
           setSettings(settingsData);
+        } else {
+          console.warn('⚠️ No settings data found');
         }
 
       } catch (error) {
@@ -551,129 +576,120 @@ const Portfolio = () => {
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
   // ===== Get profile images from settings - PRIORITIZE profileImagesData =====
-const getProfileImages = (): string[] => {
-  if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
-  
-  // FIRST: Check profileImagesData (this contains the actual image data as base64)
-  if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
-    console.log('📸 Using profileImagesData from database (base64):', settings.hero.profileImagesData.length);
-    const urls = settings.hero.profileImagesData
-      .map((img: any) => {
-        // The image is stored as { data: { $binary: { base64: ... } }, contentType, fileName }
-        // We need to convert it to a data URL
-        let base64 = '';
-        
-        // Handle the nested base64 data structure
-        if (img?.data?.$binary?.base64) {
-          base64 = img.data.$binary.base64;
-        } else if (img?.data?.base64) {
-          base64 = img.data.base64;
-        } else if (img?.data) {
-          // If data is already a string or Buffer
-          if (typeof img.data === 'string') {
-            base64 = img.data;
-          } else if (img.data.data) {
-            // Handle nested data
-            if (typeof img.data.data === 'string') {
-              base64 = img.data.data;
-            } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
-              base64 = Buffer.from(img.data.data).toString('base64');
+  const getProfileImages = (): string[] => {
+    if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+    
+    // FIRST: Check profileImagesData (this contains the actual image data as base64)
+    if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
+      console.log('📸 Using profileImagesData from database (base64):', settings.hero.profileImagesData.length);
+      const urls = settings.hero.profileImagesData
+        .map((img: any) => {
+          let base64 = '';
+          
+          // Handle the nested base64 data structure
+          if (img?.data?.$binary?.base64) {
+            base64 = img.data.$binary.base64;
+          } else if (img?.data?.base64) {
+            base64 = img.data.base64;
+          } else if (img?.data) {
+            if (typeof img.data === 'string') {
+              base64 = img.data;
+            } else if (img.data.data) {
+              if (typeof img.data.data === 'string') {
+                base64 = img.data.data;
+              } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
+                base64 = Buffer.from(img.data.data).toString('base64');
+              }
             }
           }
-        }
-        
-        if (base64) {
-          const contentType = img.contentType || 'image/jpeg';
-          return `data:${contentType};base64,${base64}`;
-        }
-        return null;
-      })
-      .filter((url: string | null) => url !== null);
-    
-    if (urls.length > 0) {
-      console.log('📸 Profile images converted to data URLs:', urls.length);
-      return urls as string[];
-    }
-  }
-  
-  // SECOND: Check profileImages (URLs - fallback)
-  if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
-    console.log('📸 Using profileImages from database (URLs):', settings.hero.profileImages.length);
-    return settings.hero.profileImages.map((img: string) => {
-      // If it's a URL path, add the API base URL
-      if (img.startsWith('/uploads/')) {
-        const base = process.env.NEXT_PUBLIC_API_URL || '';
-        return `${base}${img}`;
+          
+          if (base64) {
+            const contentType = img.contentType || 'image/jpeg';
+            return `data:${contentType};base64,${base64}`;
+          }
+          return null;
+        })
+        .filter((url: string | null) => url !== null);
+      
+      if (urls.length > 0) {
+        console.log('📸 Profile images converted to data URLs:', urls.length);
+        return urls as string[];
       }
-      return img;
-    });
-  }
-  
-  return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
-};
+    }
+    
+    // SECOND: Check profileImages (URLs - fallback)
+    if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
+      console.log('📸 Using profileImages from database (URLs):', settings.hero.profileImages.length);
+      return settings.hero.profileImages.map((img: string) => {
+        if (img.startsWith('/uploads/')) {
+          const base = process.env.NEXT_PUBLIC_API_URL || '';
+          return `${base}${img}`;
+        }
+        return img;
+      });
+    }
+    
+    return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  };
 
-// ===== Get about image from settings - PRIORITIZE imageData =====
-const getAboutImage = (): string => {
-  if (!settings?.about) return '/images/about4.jpg';
-  
-  // FIRST: Check imageData (this contains the actual image data as base64)
-  if (settings.about.imageData) {
-    console.log('📸 Using about imageData from database (base64)');
-    let base64 = '';
-    const img = settings.about.imageData;
+  // ===== Get about image from settings - PRIORITIZE imageData =====
+  const getAboutImage = (): string => {
+    if (!settings?.about) return '/images/about4.jpg';
     
-    // Handle the nested base64 data structure
-    if (img?.data?.$binary?.base64) {
-      base64 = img.data.$binary.base64;
-    } else if (img?.data?.base64) {
-      base64 = img.data.base64;
-    } else if (img?.data) {
-      if (typeof img.data === 'string') {
-        base64 = img.data;
-      } else if (img.data.data) {
-        if (typeof img.data.data === 'string') {
-          base64 = img.data.data;
-        } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
-          base64 = Buffer.from(img.data.data).toString('base64');
+    // FIRST: Check imageData (this contains the actual image data as base64)
+    if (settings.about.imageData) {
+      console.log('📸 Using about imageData from database (base64)');
+      let base64 = '';
+      const img = settings.about.imageData;
+      
+      // Handle the nested base64 data structure
+      if (img?.data?.$binary?.base64) {
+        base64 = img.data.$binary.base64;
+      } else if (img?.data?.base64) {
+        base64 = img.data.base64;
+      } else if (img?.data) {
+        if (typeof img.data === 'string') {
+          base64 = img.data;
+        } else if (img.data.data) {
+          if (typeof img.data.data === 'string') {
+            base64 = img.data.data;
+          } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
+            base64 = Buffer.from(img.data.data).toString('base64');
+          }
         }
+      }
+      
+      if (base64) {
+        const contentType = img.contentType || 'image/jpeg';
+        const dataUrl = `data:${contentType};base64,${base64}`;
+        console.log('📸 About image converted to data URL');
+        return dataUrl;
       }
     }
     
-    if (base64) {
-      const contentType = img.contentType || 'image/jpeg';
-      const dataUrl = `data:${contentType};base64,${base64}`;
-      console.log('📸 About image converted to data URL');
-      return dataUrl;
-    }
-  }
-  
-  // SECOND: Check image (URL - fallback)
-  if (settings.about.image) {
-    console.log('📸 Using about image from database (URL):', settings.about.image);
-    if (settings.about.image.startsWith('/uploads/')) {
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
-      return `${base}${settings.about.image}`;
-    }
-    if (settings.about.image.startsWith('/images/')) {
+    // SECOND: Check image (URL - fallback)
+    if (settings.about.image) {
+      console.log('📸 Using about image from database (URL):', settings.about.image);
+      if (settings.about.image.startsWith('/uploads/')) {
+        const base = process.env.NEXT_PUBLIC_API_URL || '';
+        return `${base}${settings.about.image}`;
+      }
+      if (settings.about.image.startsWith('/images/')) {
+        return settings.about.image;
+      }
       return settings.about.image;
     }
-    return settings.about.image;
-  }
-  
-  return '/images/about4.jpg';
-};
+    
+    return '/images/about4.jpg';
+  };
 
-// Then use them:
-const profiles = getProfileImages();
-const aboutImage = getAboutImage();
+  // Then use them:
+  const profiles = getProfileImages();
+  const aboutImage = getAboutImage();
 
-console.log('📸 Profile images count:', profiles.length);
-console.log('📸 First profile image preview:', profiles[0]?.substring(0, 100));
-console.log('📸 About image:', aboutImage?.substring(0, 100));
-
-  // Log what we have
   console.log('📸 Profile images count:', profiles.length);
   console.log('📸 First profile image preview:', profiles[0]?.substring(0, 100));
+  console.log('📸 About image:', aboutImage?.substring(0, 100));
 
   useEffect(() => {
     const nameInterval = setInterval(() => {
