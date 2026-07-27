@@ -151,17 +151,13 @@ const DEFAULT_SKILLS: Skill[] = [
   { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
 ];
 
-// ===== Get API Base URL =====
-const getApiBaseUrl = (): string => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  return baseUrl;
-};
+// ===== Helper functions - SAME as SettingsTab =====
 
-// ===== Helper to get image URL - Same as SettingsTab =====
+// Helper function to convert image data to URL (EXACTLY like SettingsTab)
 const getImageUrl = (item: any): string | null => {
   if (!item) return null;
 
-  // Check for imageData (projects, about, blog)
+  // Check for imageData
   if (item.imageData) {
     let base64 = '';
     
@@ -196,40 +192,13 @@ const getImageUrl = (item: any): string | null => {
     }
   }
 
-  // Check for avatarData (testimonials)
-  if (item.avatarData) {
-    let base64 = '';
-    
-    if (typeof item.avatarData.data === 'string') {
-      base64 = item.avatarData.data;
-    } else if (item.avatarData.data?.$binary?.base64) {
-      base64 = item.avatarData.data.$binary.base64;
-    } else if (item.avatarData.data?.data) {
-      try {
-        if (typeof item.avatarData.data.data === 'string') {
-          base64 = item.avatarData.data.data;
-        } else if (item.avatarData.data.data instanceof Buffer || Array.isArray(item.avatarData.data.data)) {
-          base64 = Buffer.from(item.avatarData.data.data).toString('base64');
-        }
-      } catch (e) {
-        console.warn('Failed to convert avatarData:', e);
-      }
-    } else if (item.avatarData.data instanceof Buffer) {
-      base64 = item.avatarData.data.toString('base64');
-    }
-    
-    if (base64) {
-      return `data:${item.avatarData.contentType || 'image/jpeg'};base64,${base64}`;
-    }
-  }
-
-  // Handle image URL
+  // Handle image URL (for fallback/default images)
   if (item.image) {
     if (item.image.startsWith('data:image')) {
       return item.image;
     }
     if (item.image.startsWith('/uploads/')) {
-      const base = getApiBaseUrl();
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
       return `${base}${item.image}`;
     }
     if (item.image.startsWith('/images/')) {
@@ -238,25 +207,10 @@ const getImageUrl = (item: any): string | null => {
     return item.image;
   }
 
-  // Handle avatar URL
-  if (item.avatar) {
-    if (item.avatar.startsWith('data:image')) {
-      return item.avatar;
-    }
-    if (item.avatar.startsWith('/uploads/')) {
-      const base = getApiBaseUrl();
-      return `${base}${item.avatar}`;
-    }
-    if (item.avatar.startsWith('/images/')) {
-      return item.avatar;
-    }
-    return item.avatar;
-  }
-
   return null;
 };
 
-// ===== Helper to get profile image URL - Same as SettingsTab =====
+// Helper function to get profile image URL (EXACTLY like SettingsTab)
 const getProfileImageUrl = (profileImage: any): string | null => {
   if (!profileImage) return null;
 
@@ -264,7 +218,7 @@ const getProfileImageUrl = (profileImage: any): string | null => {
   if (typeof profileImage === 'string') {
     if (profileImage.startsWith('data:')) return profileImage;
     if (profileImage.startsWith('/uploads/')) {
-      const base = getApiBaseUrl();
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
       return `${base}${profileImage}`;
     }
     if (profileImage.startsWith('/images/')) {
@@ -538,16 +492,22 @@ const Portfolio = () => {
   // ===== Get names from settings (from database) =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
-  // ===== Get profile images from settings (from database) =====
+  // ===== Get profile images from settings (from database) - SAME as SettingsTab =====
   const getProfileImages = (): string[] => {
     if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
     
-    // Check if profileImagesData exists (from backend database)
+    // Check if profileImagesData exists (from database)
     if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
       console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
       // Convert each image data to URL using the same function as SettingsTab
       const urls = settings.hero.profileImagesData
-        .map((img: any) => getProfileImageUrl(img))
+        .map((img: any) => {
+          // Pass the entire image object to getProfileImageUrl
+          // The image object might have { data, contentType, fileName } structure
+          const url = getProfileImageUrl(img);
+          console.log('📸 Converted profile image:', url ? 'Success' : 'Failed');
+          return url;
+        })
         .filter((url: string | null) => url !== null);
       
       if (urls.length > 0) {
@@ -558,7 +518,10 @@ const Portfolio = () => {
     // Check if profileImages exists (URLs from database)
     if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
       console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
-      return settings.hero.profileImages.map((img: string) => getProfileImageUrl(img) || '/images/placeholder.jpg');
+      return settings.hero.profileImages.map((img: string) => {
+        const url = getProfileImageUrl(img);
+        return url || '/images/placeholder.jpg';
+      });
     }
     
     return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
@@ -566,7 +529,7 @@ const Portfolio = () => {
 
   const profiles = getProfileImages();
 
-  // ===== Get about image from settings (from database) =====
+  // ===== Get about image from settings (from database) - SAME as SettingsTab =====
   const getAboutImage = (): string => {
     if (!settings?.about) return '/images/about4.jpg';
     
@@ -574,20 +537,31 @@ const Portfolio = () => {
     if (settings.about.imageData) {
       console.log('📸 Using about imageData from database');
       const url = getImageUrl({ imageData: settings.about.imageData });
-      if (url) return url;
+      if (url) {
+        console.log('📸 About image converted to data URL');
+        return url;
+      }
     }
     
     // Check for image URL (from database)
     if (settings.about.image) {
       console.log('📸 Using about image from database:', settings.about.image);
       const url = getImageUrl({ image: settings.about.image });
-      if (url) return url;
+      if (url) {
+        console.log('📸 About image URL:', url);
+        return url;
+      }
     }
     
     return '/images/about4.jpg';
   };
 
   const aboutImage = getAboutImage();
+
+  // Log what we have
+  console.log('📸 Profile images count:', profiles.length);
+  console.log('📸 Profile images:', profiles);
+  console.log('📸 About image:', aboutImage);
 
   useEffect(() => {
     const nameInterval = setInterval(() => {
