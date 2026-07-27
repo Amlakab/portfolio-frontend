@@ -28,7 +28,7 @@ interface Project {
   _id: string;
   title: string;
   description: string;
-  image?: string | any;
+  image?: string;
   imageData?: any;
   tags: string[];
   github?: string;
@@ -58,7 +58,8 @@ interface Testimonial {
   name: string;
   role: string;
   content: string;
-  avatar?: string | any;
+  avatar?: string;
+  avatarData?: any;
   rating: number;
 }
 
@@ -67,7 +68,8 @@ interface BlogPost {
   title: string;
   excerpt: string;
   date: string;
-  image?: string | any;
+  image?: string;
+  imageData?: any;
   category: string;
 }
 
@@ -85,12 +87,14 @@ interface SiteSettings {
     subtitle: string;
     description: string;
     profileImages: string[];
+    profileImagesData?: any[];
     resumeUrl: string;
   };
   about: {
     title: string;
     description: string;
-    image?: string | any;
+    image?: string;
+    imageData?: any;
   };
   contact: {
     email: string;
@@ -147,47 +151,105 @@ const DEFAULT_SKILLS: Skill[] = [
   { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
 ];
 
-// ===== FIXED: Helper: get image URL =====
-const getImageUrl = (imagePath?: string | any): string => {
-  if (!imagePath) return '/images/placeholder.jpg';
+// ===== Helper: get image URL - Works with all image types =====
+const getImageUrl = (item: any): string | null => {
+  if (!item) return null;
   
-  // If it's a string path
-  if (typeof imagePath === 'string') {
-    if (imagePath.startsWith('data:')) return imagePath;
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/images/')) {
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
-      return `${base}${imagePath}`;
+  // For Projects - check imageData
+  if (item.imageData?.data) {
+    let base64 = '';
+    if (typeof item.imageData.data === 'string') {
+      base64 = item.imageData.data;
+    } else if (item.imageData.data?.$binary?.base64) {
+      base64 = item.imageData.data.$binary.base64;
+    } else if (item.imageData.data?.data) {
+      try {
+        base64 = Buffer.from(item.imageData.data.data).toString('base64');
+      } catch (e) {
+        console.warn('Failed to convert imageData:', e);
+      }
     }
-    return imagePath;
-  }
-  
-  // Handle imageData object from API
-  if (imagePath?.data) {
-    try {
-      // If data is a string (base64)
-      if (typeof imagePath.data === 'string') {
-        return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data}`;
-      }
-      // If data is an array or has data property (Buffer)
-      if (Array.isArray(imagePath.data) || imagePath.data?.data) {
-        const bufferData = imagePath.data.data || imagePath.data;
-        const base64 = Buffer.from(bufferData).toString('base64');
-        return `data:${imagePath.contentType || 'image/jpeg'};base64,${base64}`;
-      }
-      // If data has $binary (MongoDB)
-      if (imagePath.data?.$binary?.base64) {
-        return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.data.$binary.base64}`;
-      }
-    } catch (error) {
-      console.error('Error processing image data:', error);
-      return '/images/placeholder.jpg';
+    if (base64) {
+      return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
   
-  // Handle direct $binary (MongoDB format)
-  if (imagePath?.$binary?.base64) {
-    return `data:${imagePath.contentType || 'image/jpeg'};base64,${imagePath.$binary.base64}`;
+  // For Testimonials - check avatarData
+  if (item.avatarData?.data) {
+    let base64 = '';
+    if (typeof item.avatarData.data === 'string') {
+      base64 = item.avatarData.data;
+    } else if (item.avatarData.data?.$binary?.base64) {
+      base64 = item.avatarData.data.$binary.base64;
+    } else if (item.avatarData.data?.data) {
+      try {
+        base64 = Buffer.from(item.avatarData.data.data).toString('base64');
+      } catch (e) {
+        console.warn('Failed to convert avatarData:', e);
+      }
+    }
+    if (base64) {
+      return `data:${item.avatarData.contentType || 'image/jpeg'};base64,${base64}`;
+    }
+  }
+  
+  // For About image
+  if (item.imageData?.data) {
+    let base64 = '';
+    if (typeof item.imageData.data === 'string') {
+      base64 = item.imageData.data;
+    } else if (item.imageData.data?.$binary?.base64) {
+      base64 = item.imageData.data.$binary.base64;
+    } else if (item.imageData.data?.data) {
+      try {
+        base64 = Buffer.from(item.imageData.data.data).toString('base64');
+      } catch (e) {
+        console.warn('Failed to convert imageData:', e);
+      }
+    }
+    if (base64) {
+      return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
+    }
+  }
+  
+  // Fallback: if image/avatar is a data URL string
+  if (item.image?.startsWith('data:image')) {
+    return item.image;
+  }
+  if (item.avatar?.startsWith('data:image')) {
+    return item.avatar;
+  }
+  
+  // Fallback: return the image/avatar string path
+  return item.image || item.avatar || null;
+};
+
+// ===== Helper: get profile image URL =====
+const getProfileImageUrl = (profileImage: string | any): string => {
+  if (!profileImage) return '/images/placeholder.jpg';
+  
+  if (typeof profileImage === 'string') {
+    if (profileImage.startsWith('data:')) return profileImage;
+    if (profileImage.startsWith('http')) return profileImage;
+    return profileImage;
+  }
+  
+  if (profileImage?.data) {
+    let base64 = '';
+    if (typeof profileImage.data === 'string') {
+      base64 = profileImage.data;
+    } else if (profileImage.data?.$binary?.base64) {
+      base64 = profileImage.data.$binary.base64;
+    } else if (profileImage.data?.data) {
+      try {
+        base64 = Buffer.from(profileImage.data.data).toString('base64');
+      } catch (e) {
+        console.warn('Failed to convert profile image:', e);
+      }
+    }
+    if (base64) {
+      return `data:${profileImage.contentType || 'image/jpeg'};base64,${base64}`;
+    }
   }
   
   return '/images/placeholder.jpg';
@@ -231,6 +293,7 @@ const getSocialIcon = (iconName: string): JSX.Element => {
 // ===== Extract data helper =====
 const extractData = (response: any): any => {
   try {
+    if (!response) return [];
     if (response?.data?.data?.data !== undefined) {
       return response.data.data.data;
     }
@@ -267,7 +330,7 @@ const Portfolio = () => {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
-  // ===== FETCH DATA WITH PROPER ERROR HANDLING =====
+  // ===== FETCH DATA =====
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -283,47 +346,26 @@ const Portfolio = () => {
           portfolioApi.getSettings(),
         ]);
 
-        // 1. Projects
         if (results[0].status === 'fulfilled') {
           const data = extractData(results[0].value);
-          if (Array.isArray(data) && data.length > 0) {
-            setProjects(data);
-          }
+          if (Array.isArray(data) && data.length > 0) setProjects(data);
         }
-
-        // 2. Experiences
         if (results[1].status === 'fulfilled') {
           const data = extractData(results[1].value);
-          if (Array.isArray(data) && data.length > 0) {
-            setExperiences(data);
-          }
+          if (Array.isArray(data) && data.length > 0) setExperiences(data);
         }
-
-        // 3. Educations
         if (results[2].status === 'fulfilled') {
           const data = extractData(results[2].value);
-          if (Array.isArray(data) && data.length > 0) {
-            setEducations(data);
-          }
+          if (Array.isArray(data) && data.length > 0) setEducations(data);
         }
-
-        // 4. Testimonials
         if (results[3].status === 'fulfilled') {
           const data = extractData(results[3].value);
-          if (Array.isArray(data) && data.length > 0) {
-            setTestimonials(data);
-          }
+          if (Array.isArray(data) && data.length > 0) setTestimonials(data);
         }
-
-        // 5. Blog Posts
         if (results[4].status === 'fulfilled') {
           const data = extractData(results[4].value);
-          if (Array.isArray(data) && data.length > 0) {
-            setBlogPosts(data);
-          }
+          if (Array.isArray(data) && data.length > 0) setBlogPosts(data);
         }
-
-        // 6. Skills
         if (results[5].status === 'fulfilled') {
           const data = extractData(results[5].value);
           if (Array.isArray(data) && data.length > 0) {
@@ -334,15 +376,12 @@ const Portfolio = () => {
             if (backend.length > 0) setBackendSkills(backend);
           }
         }
-
-        // 7. Settings
         if (results[6].status === 'fulfilled') {
           const data = extractData(results[6].value);
           if (data && typeof data === 'object' && Object.keys(data).length > 0) {
             setSettings(data);
           }
         }
-
       } catch (error) {
         console.error('Failed to fetch portfolio data:', error);
       } finally {
@@ -434,7 +473,7 @@ const Portfolio = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.bgPrimary, overflow: 'hidden' }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: colors.primary }} />
           <p style={{ color: colors.textPrimary }}>Loading portfolio...</p>
@@ -443,20 +482,19 @@ const Portfolio = () => {
     );
   }
 
-  // ===== Render =====
   return (
-    <div className={styles.portfolioApp} style={{ backgroundColor: colors.bgPrimary, color: colors.textPrimary, transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+    <div className={styles.portfolioApp} style={{ backgroundColor: colors.bgPrimary, color: colors.textPrimary, transition: 'background-color 0.3s ease, color 0.3s ease', overflowX: 'hidden', maxWidth: '100%' }}>
       {/* Animated Background */}
-      <div className={styles.animatedBg}>
-        {[...Array(30)].map((_, i) => (
+      <div className={styles.animatedBg} style={{ overflow: 'hidden' }}>
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className={styles.bgParticle}
             style={{ backgroundColor: colors.primary }}
-            initial={{ y: -100, x: Math.random() * 1000, opacity: 0 }}
+            initial={{ y: -100, x: Math.random() * 100, opacity: 0 }}
             animate={{
               y: typeof window !== 'undefined' ? window.innerHeight + 100 : 800,
-              x: Math.random() * 1000,
+              x: Math.random() * 100,
               opacity: [0, 0.2, 0],
               transition: { duration: 15 + Math.random() * 30, repeat: Infinity, ease: 'linear', delay: Math.random() * 5 },
             }}
@@ -465,57 +503,57 @@ const Portfolio = () => {
       </div>
 
       {/* Navigation */}
-      <nav className={styles.portfolioNav} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(248, 249, 250, 0.9)', backdropFilter: 'blur(10px)', color: colors.textPrimary }}>
-        <div className={styles.navContainer}>
+      <nav className={styles.portfolioNav} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.95)' : 'rgba(248, 249, 250, 0.95)', backdropFilter: 'blur(10px)', color: colors.textPrimary, position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, padding: '10px 0', width: '100%' }}>
+        <div className={styles.navContainer} style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
-            <a href="#home" className={styles.logo} style={{ color: colors.primary, fontSize: '1.8rem', fontWeight: 700, fontFamily: "'Poppins', sans-serif", letterSpacing: '1px' }} onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Amlakie</a>
+            <a href="#home" className={styles.logo} style={{ color: colors.primary, fontSize: 'clamp(1.5rem, 3vw, 1.8rem)', fontWeight: 700, fontFamily: "'Poppins', sans-serif", letterSpacing: '1px', textDecoration: 'none' }} onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Amlakie</a>
           </motion.div>
-          <div className={styles.navLinks}>
-            {sections.map((item) => (
+          <div className={styles.navLinks} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '5px' }}>
+            {sections.slice(0, 6).map((item) => (
               <motion.div key={item} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <a href={`#${item}`} className={`${styles.navLink} ${activeSection === item ? styles.active : ''}`} onClick={(e) => { e.preventDefault(); scrollToSection(item); }} style={{ color: activeSection === item ? colors.primary : colors.textPrimary, margin: '0 15px', fontWeight: 500, position: 'relative', fontSize: '0.95rem', textTransform: 'capitalize', letterSpacing: '1px', fontFamily: "'Poppins', sans-serif", transition: 'color 0.3s ease' }}>
+                <a href={`#${item}`} className={`${styles.navLink} ${activeSection === item ? styles.active : ''}`} onClick={(e) => { e.preventDefault(); scrollToSection(item); }} style={{ color: activeSection === item ? colors.primary : colors.textPrimary, fontWeight: 500, fontSize: 'clamp(0.7rem, 1.2vw, 0.95rem)', textTransform: 'capitalize', letterSpacing: '1px', fontFamily: "'Poppins', sans-serif", transition: 'color 0.3s ease', padding: '5px 8px', textDecoration: 'none', position: 'relative' }}>
                   {item.charAt(0).toUpperCase() + item.slice(1)}
                   {activeSection === item && <motion.div style={{ position: 'absolute', bottom: -5, left: 0, width: '100%', height: '2px', backgroundColor: colors.primary }} layoutId="underline" transition={{ type: 'spring', stiffness: 300, damping: 20 }} />}
                 </a>
               </motion.div>
             ))}
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} style={{ marginLeft: '15px', cursor: 'pointer' }} onClick={toggleTheme}>
-              {isDarkMode ? <FaSun color={colors.primary} size={20} /> : <FaMoon color={colors.primary} size={20} />}
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} style={{ marginLeft: '10px', cursor: 'pointer' }} onClick={toggleTheme}>
+              {isDarkMode ? <FaSun color={colors.primary} size={18} /> : <FaMoon color={colors.primary} size={18} />}
             </motion.div>
           </div>
         </div>
       </nav>
 
       {/* ===== HERO ===== */}
-      <section id="home" className={styles.heroSection} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', backgroundColor: getSectionBackground(0), color: colors.textPrimary, padding: '100px 0' }}>
-        <div className={styles.container}>
-          <div className={styles.heroGrid}>
-            <div className={styles.heroContent}>
+      <section id="home" className={styles.heroSection} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', backgroundColor: getSectionBackground(0), color: colors.textPrimary, padding: '100px 20px', marginTop: '60px', width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <div className={styles.heroGrid} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'center', width: '100%' }}>
+            <div className={styles.heroContent} style={{ width: '100%' }}>
               <motion.div initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
-                <h1 className={styles.heroTitle} style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '20px', lineHeight: 1.2, fontFamily: "'Poppins', sans-serif", color: colors.textPrimary }}>
+                <h1 className={styles.heroTitle} style={{ fontSize: 'clamp(2rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '20px', lineHeight: 1.2, fontFamily: "'Poppins', sans-serif", color: colors.textPrimary }}>
                   Hi, I'm <span style={{ color: colors.primary }}>{names[nameIndex]}</span>
                 </h1>
-                <motion.h2 className={styles.heroSubtitle} key={nameIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 400, marginBottom: '30px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
+                <motion.h2 className={styles.heroSubtitle} key={nameIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ fontSize: 'clamp(1.2rem, 3vw, 2rem)', fontWeight: 400, marginBottom: '30px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
                   {settings?.hero?.subtitle || 'Software Engineer'}
                 </motion.h2>
-                <p className={styles.heroDescription} style={{ fontSize: '1.1rem', marginBottom: '40px', maxWidth: '600px', color: colors.textPrimary }}>
+                <p className={styles.heroDescription} style={{ fontSize: 'clamp(0.9rem, 1.1vw, 1.1rem)', marginBottom: '40px', maxWidth: '600px', color: colors.textPrimary, width: '100%' }}>
                   {settings?.hero?.description || 'I build exceptional digital experiences with modern web technologies.'}
                 </p>
-                <div className={styles.heroCta} style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={styles.btnOutline} style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, padding: '13px 28px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem' }} onClick={() => { const link = document.createElement('a'); link.href = settings?.hero?.resumeUrl || '/documents/Amlakie_Abebaw_Resume.pdf'; link.download = 'Amlakie_Abebaw_Resume.pdf'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }}>
+                <div className={styles.heroCta} style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={styles.btnOutline} style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, padding: '12px 24px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: 'clamp(0.8rem, 1vw, 1rem)' }} onClick={() => { const link = document.createElement('a'); link.href = settings?.hero?.resumeUrl || '/documents/Amlakie_Abebaw_Resume.pdf'; link.download = 'Amlakie_Abebaw_Resume.pdf'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }}>
                     <FiDownload style={{ marginRight: '8px' }} /> Download CV
                   </motion.button>
-                  <motion.button whileHover={{ scale: 1.05, boxShadow: `0 10px 25px ${colors.primary}80` }} whileTap={{ scale: 0.95 }} className={styles.btnPrimary} style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', border: 'none', padding: '15px 30px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem', boxShadow: `0 5px 15px ${colors.primary}30` }} onClick={() => { const el = document.getElementById('work'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>
+                  <motion.button whileHover={{ scale: 1.05, boxShadow: `0 10px 25px ${colors.primary}80` }} whileTap={{ scale: 0.95 }} className={styles.btnPrimary} style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', border: 'none', padding: '14px 28px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: 'clamp(0.8rem, 1vw, 1rem)', boxShadow: `0 5px 15px ${colors.primary}30` }} onClick={() => { const el = document.getElementById('work'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>
                     View My Work
                   </motion.button>
                 </div>
               </motion.div>
             </div>
-            <div className={styles.heroImage}>
-              <motion.div initial={{ opacity: 0, x: 100, rotate: 5 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={styles.heroImageContainer} style={{ position: 'relative', display: 'flex', justifyContent: 'center', perspective: '1000px' }}>
+            <div className={styles.heroImage} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+              <motion.div initial={{ opacity: 0, x: 100, rotate: 5 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={styles.heroImageContainer} style={{ position: 'relative', display: 'flex', justifyContent: 'center', perspective: '1000px', width: '100%', maxWidth: '400px' }}>
                 <AnimatePresence mode="wait">
-                  <motion.div key={profileIndex} className={styles.heroImageWrapper} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.6 }} style={{ position: 'relative', width: '100%', maxWidth: '380px', height: '380px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)', transformStyle: 'preserve-3d' }}>
-                    <img src={profiles[profileIndex]} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <motion.div key={profileIndex} className={styles.heroImageWrapper} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.6 }} style={{ position: 'relative', width: '100%', maxWidth: '380px', aspectRatio: '1/1', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)', transformStyle: 'preserve-3d' }}>
+                    <img src={getProfileImageUrl(profiles[profileIndex])} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div className={styles.heroImageBg} style={{ position: 'absolute', top: '20px', left: '20px', width: 'calc(100% - 40px)', height: 'calc(100% - 40px)', border: `5px solid ${colors.primary}`, borderRadius: '30px', zIndex: -1, transform: 'rotate(5deg)' }} />
                   </motion.div>
                 </AnimatePresence>
@@ -526,25 +564,25 @@ const Portfolio = () => {
       </section>
 
       {/* ===== ABOUT ===== */}
-      <section id="about" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(1), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="about" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(1), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <FaUser color={colors.primary} /> {settings?.about?.title || 'About Me'}
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.aboutGrid}>
-              <div className={styles.aboutImageWrapper}>
-                <motion.div whileHover={{ rotate: 2 }} transition={{ type: 'spring' }} className={styles.aboutImageContainer} style={{ position: 'relative', width: '100%', maxWidth: '300px', height: '400px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)', margin: '0 auto', border: `2px solid ${colors.primary}` }}>
-                  <img src={getImageUrl(settings?.about?.image || '/images/about4.jpg')} alt="About" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className={styles.aboutGrid} style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '40px', alignItems: 'center', width: '100%' }}>
+              <div className={styles.aboutImageWrapper} style={{ display: 'flex', justifyContent: 'center' }}>
+                <motion.div whileHover={{ rotate: 2 }} transition={{ type: 'spring' }} className={styles.aboutImageContainer} style={{ position: 'relative', width: '100%', maxWidth: '300px', aspectRatio: '3/4', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)', margin: '0 auto', border: `2px solid ${colors.primary}` }}>
+                  <img src={getImageUrl(settings?.about) || '/images/about4.jpg'} alt="About" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </motion.div>
               </div>
-              <div className={styles.aboutContent}>
+              <div className={styles.aboutContent} style={{ width: '100%' }}>
                 <h3 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', marginBottom: '8px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>Who is Amlakie?</h3>
-                <h5 style={{ fontSize: 'clamp(1.2rem, 3vw, 1.2rem)', marginBottom: '25px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>Software Developer</h5>
-                <p style={{ marginBottom: '20px', lineHeight: 1.8, fontSize: '1.1rem', color: colors.textPrimary }}>{settings?.about?.description || "I'm a passionate and self-motivated Software Developer with a strong foundation in both front-end and back-end technologies."}</p>
+                <h5 style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', marginBottom: '25px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>Software Developer</h5>
+                <p style={{ marginBottom: '20px', lineHeight: 1.8, fontSize: 'clamp(0.9rem, 1.1vw, 1.1rem)', color: colors.textPrimary }}>{settings?.about?.description || "I'm a passionate and self-motivated Software Developer with a strong foundation in both front-end and back-end technologies."}</p>
               </div>
             </div>
           </motion.div>
@@ -552,120 +590,109 @@ const Portfolio = () => {
       </section>
 
       {/* ===== EDUCATION ===== */}
-      <section id="education" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(4), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="education" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(4), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <FaGraduationCap color={colors.primary} /> My Education
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.timeline}>
-              {educations.length > 0 ? educations.map((edu, index) => (
-                <motion.div key={edu._id} className={`${styles.timelineItem} ${index % 2 === 0 ? styles.left : styles.right}`} initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }}>
-                  <motion.div className={styles.timelineContent} whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: '30px', borderRadius: '15px', borderLeft: `5px solid ${colors.primary}`, color: colors.textPrimary }}>
-                    <h3 style={{ fontSize: '1.5rem', color: colors.primary, marginBottom: '10px', fontFamily: "'Poppins', sans-serif" }}>{edu.degree}</h3>
-                    <h4 style={{ fontSize: '1.2rem', color: colors.textPrimary, marginBottom: '10px', fontWeight: 600 }}>{edu.institution}</h4>
-                    <span className={styles.date} style={{ display: 'inline-block', marginBottom: '15px', color: isDarkMode ? '#00f0ff' : '#2563eb', fontWeight: 500, backgroundColor: isDarkMode ? 'rgba(0, 240, 255, 0.1)' : 'rgba(37, 99, 235, 0.1)', padding: '5px 15px', borderRadius: '20px', fontSize: '0.9rem' }}>{edu.year}</span>
+            <div className={styles.timeline} style={{ display: 'flex', flexDirection: 'column', gap: '30px', width: '100%' }}>
+              {educations.map((edu, index) => (
+                <motion.div key={edu._id} className={`${styles.timelineItem}`} initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }} style={{ width: '100%' }}>
+                  <motion.div className={styles.timelineContent} whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: 'clamp(20px, 3vw, 30px)', borderRadius: '15px', borderLeft: `5px solid ${colors.primary}`, color: colors.textPrimary, width: '100%' }}>
+                    <h3 style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', color: colors.primary, marginBottom: '10px', fontFamily: "'Poppins', sans-serif" }}>{edu.degree}</h3>
+                    <h4 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.2rem)', color: colors.textPrimary, marginBottom: '10px', fontWeight: 600 }}>{edu.institution}</h4>
+                    <span className={styles.date} style={{ display: 'inline-block', marginBottom: '15px', color: isDarkMode ? '#00f0ff' : '#2563eb', fontWeight: 500, backgroundColor: isDarkMode ? 'rgba(0, 240, 255, 0.1)' : 'rgba(37, 99, 235, 0.1)', padding: '5px 15px', borderRadius: '20px', fontSize: 'clamp(0.75rem, 0.9vw, 0.9rem)' }}>{edu.year}</span>
                     <p style={{ marginBottom: 0, lineHeight: 1.8, color: colors.textPrimary }}>{edu.description}</p>
                   </motion.div>
                 </motion.div>
-              )) : (
-                <p style={{ textAlign: 'center', color: colors.textSecondary }}>No education data available</p>
-              )}
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ===== EXPERIENCE ===== */}
-      <section id="experience" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(3), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="experience" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(3), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <FaBriefcase color={colors.primary} /> My Experience
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.timeline}>
-              {experiences.length > 0 ? experiences.map((exp, index) => (
-                <motion.div key={exp._id} className={`${styles.timelineItem} ${index % 2 === 0 ? styles.left : styles.right}`} initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }}>
-                  <motion.div className={styles.timelineContent} whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: '30px', borderRadius: '15px', borderLeft: `5px solid ${colors.primary}`, color: colors.textPrimary }}>
-                    <h3 style={{ fontSize: '1.5rem', color: colors.primary, marginBottom: '10px', fontFamily: "'Poppins', sans-serif" }}>{exp.role}</h3>
-                    <h4 style={{ fontSize: '1.2rem', color: colors.textPrimary, marginBottom: '10px', fontWeight: 600 }}>{exp.company}</h4>
-                    <span className={styles.date} style={{ display: 'inline-block', marginBottom: '15px', color: isDarkMode ? '#00f0ff' : '#2563eb', fontWeight: 500, backgroundColor: isDarkMode ? 'rgba(0, 240, 255, 0.1)' : 'rgba(37, 99, 235, 0.1)', padding: '5px 15px', borderRadius: '20px', fontSize: '0.9rem' }}>{exp.period}</span>
+            <div className={styles.timeline} style={{ display: 'flex', flexDirection: 'column', gap: '30px', width: '100%' }}>
+              {experiences.map((exp, index) => (
+                <motion.div key={exp._id} className={`${styles.timelineItem}`} initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: index * 0.2 }} style={{ width: '100%' }}>
+                  <motion.div className={styles.timelineContent} whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: 'clamp(20px, 3vw, 30px)', borderRadius: '15px', borderLeft: `5px solid ${colors.primary}`, color: colors.textPrimary, width: '100%' }}>
+                    <h3 style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', color: colors.primary, marginBottom: '10px', fontFamily: "'Poppins', sans-serif" }}>{exp.role}</h3>
+                    <h4 style={{ fontSize: 'clamp(1rem, 1.5vw, 1.2rem)', color: colors.textPrimary, marginBottom: '10px', fontWeight: 600 }}>{exp.company}</h4>
+                    <span className={styles.date} style={{ display: 'inline-block', marginBottom: '15px', color: isDarkMode ? '#00f0ff' : '#2563eb', fontWeight: 500, backgroundColor: isDarkMode ? 'rgba(0, 240, 255, 0.1)' : 'rgba(37, 99, 235, 0.1)', padding: '5px 15px', borderRadius: '20px', fontSize: 'clamp(0.75rem, 0.9vw, 0.9rem)' }}>{exp.period}</span>
                     <p style={{ marginBottom: 0, lineHeight: 1.8, color: colors.textPrimary }}>{exp.description}</p>
                   </motion.div>
                 </motion.div>
-              )) : (
-                <p style={{ textAlign: 'center', color: colors.textSecondary }}>No experience data available</p>
-              )}
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ===== SKILLS ===== */}
-      <section id="skills" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(2), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="skills" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(2), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <FaTools color={colors.primary} /> My Skills
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.skillsDescription}>
-              <p style={{ textAlign: 'center', marginBottom: '30px', lineHeight: 1.8, fontSize: '1.1rem', color: colors.textPrimary }}>I've mastered a variety of technologies in the web development world, from backend systems to interactive frontend experiences.</p>
-            </div>
-            <div className={styles.skillsGrid}>
+            <div className={styles.skillsGrid} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', width: '100%' }}>
               {/* Frontend */}
-              <div className={styles.skillsColumn}>
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInLeft} whileHover={{ y: -10, boxShadow: `0 20px 40px ${colors.primary}20` }} style={{ padding: '30px', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.7)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', backdropFilter: 'blur(10px)', border: `2px solid transparent`, transition: 'all 0.3s ease' }}>
+              <div className={styles.skillsColumn} style={{ width: '100%' }}>
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInLeft} whileHover={{ y: -10, boxShadow: `0 20px 40px ${colors.primary}20` }} style={{ padding: 'clamp(20px, 3vw, 30px)', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.7)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', backdropFilter: 'blur(10px)', border: `2px solid transparent`, transition: 'all 0.3s ease', width: '100%' }}>
                   <motion.div whileHover={{ scale: 1.02 }}>
-                    <h3 style={{ fontSize: '1.5rem', marginBottom: '25px', color: colors.primary, fontFamily: "'Poppins', sans-serif", textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <h3 style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', marginBottom: '25px', color: colors.primary, fontFamily: "'Poppins', sans-serif", textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       <motion.span whileHover={{ rotate: 360 }}><FaReact /></motion.span> Frontend Skills
                     </h3>
-                    {frontendSkills.length > 0 ? frontendSkills.map((skill, index) => (
+                    {frontendSkills.map((skill, index) => (
                       <motion.div key={skill._id} className={styles.progressItem} style={{ marginBottom: '25px' }} whileHover={{ x: 10 }}>
-                        <div className={styles.progressHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                        <div className={styles.progressHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap' }}>
                           <span className={styles.skillIcon} style={{ fontSize: '1.5rem', marginRight: '15px', color: colors.primary }}>{getIconComponent(skill.icon)}</span>
-                          <span className={styles.skillName} style={{ fontWeight: 600, flexGrow: 1, fontSize: '1.1rem', color: colors.textPrimary }}>{skill.name}</span>
-                          <span className={styles.skillPercent} style={{ fontWeight: 700, color: colors.primary, fontSize: '1.1rem' }}>{skill.value}%</span>
+                          <span className={styles.skillName} style={{ fontWeight: 600, flexGrow: 1, fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', color: colors.textPrimary }}>{skill.name}</span>
+                          <span className={styles.skillPercent} style={{ fontWeight: 700, color: colors.primary, fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>{skill.value}%</span>
                         </div>
                         <div className={styles.progressBar} style={{ width: '100%', height: '10px', backgroundColor: isDarkMode ? '#112240' : '#e9ecef', borderRadius: '5px', overflow: 'hidden' }}>
                           <motion.div className={styles.progressFill} initial={{ width: 0 }} whileInView={{ width: `${skill.value}%` }} viewport={{ once: true }} transition={{ duration: 1.5, delay: index * 0.1 + 0.3 }} style={{ height: '100%', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '5px', boxShadow: `0 2px 10px ${colors.primary}30` }} />
                         </div>
                       </motion.div>
-                    )) : (
-                      <p style={{ textAlign: 'center', color: colors.textSecondary }}>No frontend skills data available</p>
-                    )}
+                    ))}
                   </motion.div>
                 </motion.div>
               </div>
               {/* Backend */}
-              <div className={styles.skillsColumn}>
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInRight} whileHover={{ y: -10, boxShadow: `0 20px 40px ${colors.secondary}20` }} style={{ padding: '30px', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.7)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', backdropFilter: 'blur(10px)', border: `2px solid transparent`, transition: 'all 0.3s ease' }}>
+              <div className={styles.skillsColumn} style={{ width: '100%' }}>
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInRight} whileHover={{ y: -10, boxShadow: `0 20px 40px ${colors.secondary}20` }} style={{ padding: 'clamp(20px, 3vw, 30px)', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.7)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', backdropFilter: 'blur(10px)', border: `2px solid transparent`, transition: 'all 0.3s ease', width: '100%' }}>
                   <motion.div whileHover={{ scale: 1.02 }}>
-                    <h3 style={{ fontSize: '1.5rem', marginBottom: '25px', color: colors.secondary, fontFamily: "'Poppins', sans-serif", textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <h3 style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', marginBottom: '25px', color: colors.secondary, fontFamily: "'Poppins', sans-serif", textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                       <motion.span whileHover={{ rotate: 360 }}><FaServer /></motion.span> Backend Skills
                     </h3>
-                    {backendSkills.length > 0 ? backendSkills.map((skill, index) => (
+                    {backendSkills.map((skill, index) => (
                       <motion.div key={skill._id} className={styles.progressItem} style={{ marginBottom: '25px' }} whileHover={{ x: 10 }}>
-                        <div className={styles.progressHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                        <div className={styles.progressHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap' }}>
                           <span className={styles.skillIcon} style={{ fontSize: '1.5rem', marginRight: '15px', color: colors.secondary }}>{getIconComponent(skill.icon)}</span>
-                          <span className={styles.skillName} style={{ fontWeight: 600, flexGrow: 1, fontSize: '1.1rem', color: colors.textPrimary }}>{skill.name}</span>
-                          <span className={styles.skillPercent} style={{ fontWeight: 700, color: colors.secondary, fontSize: '1.1rem' }}>{skill.value}%</span>
+                          <span className={styles.skillName} style={{ fontWeight: 600, flexGrow: 1, fontSize: 'clamp(0.9rem, 1vw, 1.1rem)', color: colors.textPrimary }}>{skill.name}</span>
+                          <span className={styles.skillPercent} style={{ fontWeight: 700, color: colors.secondary, fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>{skill.value}%</span>
                         </div>
                         <div className={styles.progressBar} style={{ width: '100%', height: '10px', backgroundColor: isDarkMode ? '#112240' : '#e9ecef', borderRadius: '5px', overflow: 'hidden' }}>
                           <motion.div className={styles.progressFill} initial={{ width: 0 }} whileInView={{ width: `${skill.value}%` }} viewport={{ once: true }} transition={{ duration: 1.5, delay: index * 0.1 + 0.3 }} style={{ height: '100%', background: `linear-gradient(90deg, ${colors.secondary}, ${colors.primary})`, borderRadius: '5px', boxShadow: `0 2px 10px ${colors.secondary}30` }} />
                         </div>
                       </motion.div>
-                    )) : (
-                      <p style={{ textAlign: 'center', color: colors.textSecondary }}>No backend skills data available</p>
-                    )}
+                    ))}
                   </motion.div>
                 </motion.div>
               </div>
@@ -675,42 +702,35 @@ const Portfolio = () => {
       </section>
 
       {/* ===== WORK ===== */}
-      <section id="work" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(5), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="work" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(5), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <FaLaptopCode color={colors.primary} /> My Work
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.projectFilter} style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '15px', marginBottom: '50px' }}>
-              {['All', 'Web', 'Mobile', 'Design', 'Full Stack'].map((filter) => (
-                <motion.button key={filter} whileHover={{ scale: 1.05, backgroundColor: colors.primary, color: '#ffffff' }} whileTap={{ scale: 0.95 }} className={styles.filterBtn} style={{ backgroundColor: 'transparent', color: colors.textPrimary, border: `1px solid ${colors.primary}`, padding: '8px 20px', borderRadius: '50px', fontWeight: 500, cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.3s ease' }}>
-                  {filter}
-                </motion.button>
-              ))}
-            </div>
-            <div className={styles.projectGrid}>
-              {projects.length > 0 ? projects.map((project, index) => (
-                <motion.div key={project._id} className={`${styles.projectCard} ${index % 2 === 0 ? styles.wide : styles.narrow}`} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} style={{ cursor: 'pointer', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: `0 10px 30px ${colors.shadow}`, display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
+            <div className={styles.projectGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '30px', width: '100%' }}>
+              {projects.map((project, index) => (
+                <motion.div key={project._id} className={`${styles.projectCard}`} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} style={{ cursor: 'pointer', backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: `0 10px 30px ${colors.shadow}`, display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', width: '100%' }}>
                   <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
-                    <img src={getImageUrl(project.image || project.imageData)} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getImageUrl(project) || '/images/placeholder.jpg'} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <motion.div className={styles.projectOverlay} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: `linear-gradient(to top, ${colors.primary}ee, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.5s ease-in-out' }} whileHover={{ opacity: 1 }}>
                       {project.liveUrl && (
-                        <motion.a href={project.liveUrl} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} style={{ background: colors.primary, color: '#ffffff', border: 'none', padding: '12px 25px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '0.9rem', textDecoration: 'none' }}>
+                        <motion.a href={project.liveUrl} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} style={{ background: colors.primary, color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: 'clamp(0.75rem, 0.9vw, 0.9rem)', textDecoration: 'none' }}>
                           <FiExternalLink style={{ marginRight: '8px' }} /> View Project
                         </motion.a>
                       )}
                     </motion.div>
                   </div>
                   <div className={styles.projectInfo} style={{ padding: '20px', flex: 1 }}>
-                    <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{project.title}</h3>
-                    <p style={{ marginBottom: '15px', color: colors.textPrimary, fontSize: '0.95rem', lineHeight: 1.5 }}>{project.description}</p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className={styles.projectTags} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}>
+                    <h3 style={{ fontSize: 'clamp(1.1rem, 1.5vw, 1.4rem)', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{project.title}</h3>
+                    <p style={{ marginBottom: '15px', color: colors.textPrimary, fontSize: 'clamp(0.85rem, 0.95vw, 0.95rem)', lineHeight: 1.5 }}>{project.description}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className={styles.projectTags} style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: 1 }}>
                         {project.tags.map((tag, i) => (
-                          <span key={i} style={{ backgroundColor: colors.primary + '20', color: colors.primary, padding: '5px 10px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 500 }}>{tag}</span>
+                          <span key={i} style={{ backgroundColor: colors.primary + '20', color: colors.primary, padding: '4px 8px', borderRadius: '50px', fontSize: 'clamp(0.65rem, 0.75vw, 0.75rem)', fontWeight: 500 }}>{tag}</span>
                         ))}
                       </div>
                       {project.github && (
@@ -719,107 +739,101 @@ const Portfolio = () => {
                     </div>
                   </div>
                 </motion.div>
-              )) : (
-                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No projects data available</p>
-              )}
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ===== TESTIMONIALS ===== */}
-      <section id="testimonials" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(6), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="testimonials" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(6), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <MdRecordVoiceOver color={colors.primary} /> Client Testimonials
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.testimonialSlider} style={{ position: 'relative', padding: '20px 0', display: 'flex', gap: '30px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}>
-              {testimonials.length > 0 ? testimonials.map((testimonial) => (
-                <motion.div key={testimonial._id} className={styles.testimonialCard} whileHover={{ scale: 1.02, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', padding: '40px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', minWidth: '80%', scrollSnapAlign: 'start' }}>
-                  <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '25px' }}>
-                    <div className={styles.testimonialAvatar} style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginRight: '25px', border: `3px solid ${colors.primary}`, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)', position: 'relative' }}>
-                      <img src={getImageUrl(testimonial.avatar)} alt={testimonial.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className={styles.testimonialSlider} style={{ position: 'relative', padding: '20px 0', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '30px', width: '100%' }}>
+              {testimonials.map((testimonial) => (
+                <motion.div key={testimonial._id} className={styles.testimonialCard} whileHover={{ scale: 1.02, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', padding: 'clamp(20px, 3vw, 40px)', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', width: '100%' }}>
+                  <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap' }}>
+                    <div className={styles.testimonialAvatar} style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', marginRight: '20px', border: `3px solid ${colors.primary}`, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)', position: 'relative', flexShrink: 0 }}>
+                      <img src={getImageUrl(testimonial) || '/images/placeholder.jpg'} alt={testimonial.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <div className={styles.testimonialAuthor}>
-                      <h4 style={{ fontSize: '1.4rem', marginBottom: '5px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{testimonial.name}</h4>
-                      <p style={{ fontSize: '1rem', color: colors.textPrimary, marginBottom: '10px', opacity: 0.8 }}>{testimonial.role}</p>
-                      <div className={styles.testimonialRating} style={{ color: '#ffc107', fontSize: '1.1rem' }}>
+                      <h4 style={{ fontSize: 'clamp(1.1rem, 1.4vw, 1.4rem)', marginBottom: '5px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{testimonial.name}</h4>
+                      <p style={{ fontSize: 'clamp(0.85rem, 1vw, 1rem)', color: colors.textPrimary, marginBottom: '5px', opacity: 0.8 }}>{testimonial.role}</p>
+                      <div className={styles.testimonialRating} style={{ color: '#ffc107', fontSize: 'clamp(0.9rem, 1vw, 1.1rem)' }}>
                         {[...Array(testimonial.rating)].map((_, i) => <span key={i}>★</span>)}
                       </div>
                     </div>
                   </div>
                   <div className={styles.testimonialContent}>
-                    <p style={{ fontStyle: 'italic', lineHeight: 1.8, position: 'relative', paddingLeft: '30px', fontSize: '1.1rem', color: colors.textPrimary }}>
+                    <p style={{ fontStyle: 'italic', lineHeight: 1.8, position: 'relative', paddingLeft: '30px', fontSize: 'clamp(0.9rem, 1.1vw, 1.1rem)', color: colors.textPrimary }}>
                       <span style={{ position: 'absolute', left: 0, top: 0, fontSize: '3rem', lineHeight: 1, color: colors.primary, opacity: 0.2 }}>"</span>
                       {testimonial.content}
                     </p>
                   </div>
                 </motion.div>
-              )) : (
-                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No testimonials data available</p>
-              )}
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ===== BLOG ===== */}
-      <section id="blog" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(7), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="blog" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(7), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <RiArticleLine color={colors.primary} /> Latest Articles
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.blogGrid}>
-              {blogPosts.length > 0 ? blogPosts.map((post) => (
-                <div key={post._id} className={styles.blogCard}>
-                  <motion.div className={styles.blogCardInner} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)', marginBottom: '30px', height: '100%' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} whileHover={{ y: -10, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }}>
-                    <div className={styles.blogImage} style={{ position: 'relative', height: '250px', overflow: 'hidden' }}>
-                      <img src={getImageUrl(post.image)} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div className={styles.blogCategory} style={{ position: 'absolute', top: '20px', right: '20px', background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', padding: '6px 18px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)' }}>{post.category}</div>
+            <div className={styles.blogGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '30px', width: '100%' }}>
+              {blogPosts.map((post) => (
+                <div key={post._id} className={styles.blogCard} style={{ width: '100%' }}>
+                  <motion.div className={styles.blogCardInner} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)', height: '100%' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} whileHover={{ y: -10, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }}>
+                    <div className={styles.blogImage} style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
+                      <img src={getImageUrl(post) || '/images/placeholder.jpg'} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div className={styles.blogCategory} style={{ position: 'absolute', top: '15px', right: '15px', background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', padding: '4px 14px', borderRadius: '20px', fontSize: 'clamp(0.7rem, 0.8vw, 0.85rem)', fontWeight: 600, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)' }}>{post.category}</div>
                     </div>
-                    <div className={styles.blogContent} style={{ padding: '30px' }}>
-                      <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{post.title}</h3>
-                      <p className={styles.blogDate} style={{ fontSize: '0.95rem', color: colors.textPrimary, marginBottom: '20px', display: 'flex', alignItems: 'center', opacity: 0.8 }}>
+                    <div className={styles.blogContent} style={{ padding: 'clamp(20px, 3vw, 30px)' }}>
+                      <h3 style={{ fontSize: 'clamp(1.1rem, 1.5vw, 1.5rem)', marginBottom: '15px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{post.title}</h3>
+                      <p className={styles.blogDate} style={{ fontSize: 'clamp(0.8rem, 0.9vw, 0.95rem)', color: colors.textPrimary, marginBottom: '15px', display: 'flex', alignItems: 'center', opacity: 0.8 }}>
                         <span style={{ display: 'inline-block', width: '15px', height: '2px', backgroundColor: colors.primary, marginRight: '10px' }}></span>
                         {post.date}
                       </p>
-                      <p className={styles.blogExcerpt} style={{ marginBottom: '25px', lineHeight: 1.8, color: colors.textPrimary }}>{post.excerpt}</p>
-                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={styles.btnReadMore} style={{ backgroundColor: 'transparent', color: colors.primary, border: 'none', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', padding: 0, fontSize: '1rem' }}>Read More <FiExternalLink style={{ marginLeft: '8px' }} /></motion.button>
+                      <p className={styles.blogExcerpt} style={{ marginBottom: '20px', lineHeight: 1.8, color: colors.textPrimary, fontSize: 'clamp(0.85rem, 0.95vw, 0.95rem)' }}>{post.excerpt}</p>
+                      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={styles.btnReadMore} style={{ backgroundColor: 'transparent', color: colors.primary, border: 'none', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', padding: 0, fontSize: 'clamp(0.85rem, 0.95vw, 1rem)' }}>Read More <FiExternalLink style={{ marginLeft: '8px' }} /></motion.button>
                     </div>
                   </motion.div>
                 </div>
-              )) : (
-                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No blog posts available</p>
-              )}
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ===== STATS ===== */}
-      <section className={styles.statsSection} style={{ background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`, color: '#ffffff', padding: '100px 0', position: 'relative', overflow: 'hidden' }}>
-        <div className={styles.container}>
-          <div className={styles.statsGrid}>
+      <section className={styles.statsSection} style={{ background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`, color: '#ffffff', padding: '60px 20px', position: 'relative', overflow: 'hidden', width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <div className={styles.statsGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px', width: '100%' }}>
             {[
               { number: settings?.stats?.projectsCompleted || 25, label: 'Projects Completed' },
               { number: settings?.stats?.happyClients || 15, label: 'Happy Clients' },
               { number: settings?.stats?.linesOfCode || 50000, label: 'Lines of Code' },
               { number: settings?.stats?.yearsExperience || 3, label: 'Years Experience' },
             ].map((stat, index) => (
-              <div key={index} className={styles.statCard}>
-                <motion.div className={styles.statCardInner} style={{ textAlign: 'center', padding: '40px 20px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '20px', backdropFilter: 'blur(5px)', marginBottom: '20px', border: '1px solid rgba(255, 255, 255, 0.2)' }} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -5, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
-                  <motion.div className={styles.statNumber} style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, marginBottom: '15px', fontFamily: "'Poppins', sans-serif", position: 'relative' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 + 0.3 }}>
+              <div key={index} className={styles.statCard} style={{ width: '100%' }}>
+                <motion.div className={styles.statCardInner} style={{ textAlign: 'center', padding: '30px 15px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '20px', backdropFilter: 'blur(5px)', border: '1px solid rgba(255, 255, 255, 0.2)' }} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -5, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                  <motion.div className={styles.statNumber} style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)', fontWeight: 700, marginBottom: '10px', fontFamily: "'Poppins', sans-serif", position: 'relative' }} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 + 0.3 }}>
                     {typeof stat.number === 'number' ? stat.number.toLocaleString() : stat.number}+
                   </motion.div>
-                  <div className={styles.statLabel} style={{ fontSize: '1.2rem', opacity: 0.9, fontWeight: 500 }}>{stat.label}</div>
+                  <div className={styles.statLabel} style={{ fontSize: 'clamp(0.9rem, 1.1vw, 1.2rem)', opacity: 0.9, fontWeight: 500 }}>{stat.label}</div>
                 </motion.div>
               </div>
             ))}
@@ -828,48 +842,48 @@ const Portfolio = () => {
       </section>
 
       {/* ===== CONTACT ===== */}
-      <section id="contact" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(8), color: colors.textPrimary }}>
-        <div className={styles.container}>
+      <section id="contact" className={styles.section} style={{ padding: '80px 20px', position: 'relative', backgroundColor: getSectionBackground(8), color: colors.textPrimary, width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
                 <FaHeadset color={colors.primary} /> Get In Touch
                 <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
               </h2>
             </div>
-            <div className={styles.contactInfoGrid}>
+            <div className={styles.contactInfoGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '30px', width: '100%', marginBottom: '40px' }}>
               {[
                 { icon: <FaMapMarker />, title: 'Location', detail: settings?.contact?.location || 'Addis Ababa, Ethiopia' },
                 { icon: <FaPhone />, title: 'Phone', detail: settings?.contact?.phone || '+251 9 12 43 65 73' },
                 { icon: <FiMail />, title: 'Email', detail: settings?.contact?.email || 'amlakieab4@gmail.com' },
               ].map((item, idx) => (
-                <div key={idx} className={styles.contactInfoItem}>
-                  <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} style={{ textAlign: 'center' }}>
-                    <span style={{ fontSize: '30px', color: colors.primary }}>{item.icon}</span>
-                    <h3 style={{ color: colors.primary, fontFamily: "'Poppins', sans-serif", margin: '15px 0' }}>{item.title}</h3>
-                    <p style={{ color: colors.textPrimary }}>{item.detail}</p>
+                <div key={idx} className={styles.contactInfoItem} style={{ width: '100%' }}>
+                  <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 1 }} style={{ textAlign: 'center', padding: '20px' }}>
+                    <span style={{ fontSize: 'clamp(24px, 3vw, 30px)', color: colors.primary }}>{item.icon}</span>
+                    <h3 style={{ color: colors.primary, fontFamily: "'Poppins', sans-serif", margin: '15px 0', fontSize: 'clamp(1rem, 1.3vw, 1.3rem)' }}>{item.title}</h3>
+                    <p style={{ color: colors.textPrimary, fontSize: 'clamp(0.85rem, 1vw, 1rem)' }}>{item.detail}</p>
                   </motion.div>
                 </div>
               ))}
             </div>
-            <div className={styles.contactFormGrid}>
-              <div className={styles.contactMap}>
-                <motion.div initial={{ x: -100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }}>
-                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.869244319124!2d38.76321431536945!3d9.012326893541918!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85f1a4b1f3b5%3A0x1c5b5b5b5b5b5b5b!2sAddis%20Ababa%2C%20Ethiopia!5e0!3m2!1sen!2set!4v1633080000000!5m2!1sen!2set" width="100%" height="400" style={{ border: 0, borderRadius: '10px' }} allowFullScreen loading="lazy" />
+            <div className={styles.contactFormGrid} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', width: '100%' }}>
+              <div className={styles.contactMap} style={{ width: '100%' }}>
+                <motion.div initial={{ x: -100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }} style={{ width: '100%' }}>
+                  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.869244319124!2d38.76321431536945!3d9.012326893541918!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x164b85f1a4b1f3b5%3A0x1c5b5b5b5b5b5b5b!2sAddis%20Ababa%2C%20Ethiopia!5e0!3m2!1sen!2set!4v1633080000000!5m2!1sen!2set" width="100%" height="350" style={{ border: 0, borderRadius: '10px', width: '100%' }} allowFullScreen loading="lazy" />
                 </motion.div>
               </div>
-              <div className={styles.contactForm}>
-                <motion.div initial={{ x: 100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }}>
-                  <div className={styles.contactFormInner} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: '40px', borderRadius: '20px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)' }}>
-                    <h3 style={{ color: colors.primary, fontSize: '2rem', marginBottom: '25px', fontFamily: "'Poppins', sans-serif" }}>Send Me a Message</h3>
-                    <form>
-                      <div className={styles.formRow}>
-                        <div className={styles.formGroup}><input type="text" placeholder="Your Name" required style={{ width: '100%', padding: '15px 20px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: '1rem', backgroundColor: 'transparent', color: colors.textPrimary }} /></div>
-                        <div className={styles.formGroup}><input type="email" placeholder="Your Email" required style={{ width: '100%', padding: '15px 20px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: '1rem', backgroundColor: 'transparent', color: colors.textPrimary }} /></div>
+              <div className={styles.contactForm} style={{ width: '100%' }}>
+                <motion.div initial={{ x: 100, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} transition={{ duration: 1 }} style={{ width: '100%' }}>
+                  <div className={styles.contactFormInner} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', padding: 'clamp(20px, 3vw, 40px)', borderRadius: '20px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', width: '100%' }}>
+                    <h3 style={{ color: colors.primary, fontSize: 'clamp(1.5rem, 2.5vw, 2rem)', marginBottom: '25px', fontFamily: "'Poppins', sans-serif" }}>Send Me a Message</h3>
+                    <form style={{ width: '100%' }}>
+                      <div className={styles.formRow} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px', width: '100%' }}>
+                        <div className={styles.formGroup} style={{ width: '100%' }}><input type="text" placeholder="Your Name" required style={{ width: '100%', padding: '12px 16px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: 'clamp(0.85rem, 1vw, 1rem)', backgroundColor: 'transparent', color: colors.textPrimary, boxSizing: 'border-box' }} /></div>
+                        <div className={styles.formGroup} style={{ width: '100%' }}><input type="email" placeholder="Your Email" required style={{ width: '100%', padding: '12px 16px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: 'clamp(0.85rem, 1vw, 1rem)', backgroundColor: 'transparent', color: colors.textPrimary, boxSizing: 'border-box' }} /></div>
                       </div>
-                      <div className={styles.formGroup}><input type="text" placeholder="Subject" required style={{ width: '100%', padding: '15px 20px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: '1rem', backgroundColor: 'transparent', color: colors.textPrimary }} /></div>
-                      <div className={styles.formGroup}><textarea placeholder="Your Message" rows={5} required style={{ width: '100%', padding: '15px 20px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: '1rem', resize: 'none', backgroundColor: 'transparent', color: colors.textPrimary }} /></div>
-                      <motion.button whileHover={{ scale: 1.05, boxShadow: `0 5px 15px ${colors.primary}40` }} whileTap={{ scale: 0.95 }} type="submit" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', border: 'none', padding: '15px 30px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem', boxShadow: `0 5px 15px ${colors.primary}30`, width: '100%', justifyContent: 'center' }}>Send Message</motion.button>
+                      <div className={styles.formGroup} style={{ width: '100%', marginBottom: '15px' }}><input type="text" placeholder="Subject" required style={{ width: '100%', padding: '12px 16px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: 'clamp(0.85rem, 1vw, 1rem)', backgroundColor: 'transparent', color: colors.textPrimary, boxSizing: 'border-box' }} /></div>
+                      <div className={styles.formGroup} style={{ width: '100%', marginBottom: '20px' }}><textarea placeholder="Your Message" rows={4} required style={{ width: '100%', padding: '12px 16px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: 'clamp(0.85rem, 1vw, 1rem)', resize: 'vertical', backgroundColor: 'transparent', color: colors.textPrimary, boxSizing: 'border-box', minHeight: '120px' }} /></div>
+                      <motion.button whileHover={{ scale: 1.05, boxShadow: `0 5px 15px ${colors.primary}40` }} whileTap={{ scale: 0.95 }} type="submit" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', border: 'none', padding: '14px 28px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: 'clamp(0.85rem, 1vw, 1rem)', boxShadow: `0 5px 15px ${colors.primary}30`, width: '100%', justifyContent: 'center' }}>Send Message</motion.button>
                     </form>
                   </div>
                 </motion.div>
@@ -880,20 +894,20 @@ const Portfolio = () => {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className={styles.footer} style={{ backgroundColor: '#000', color: '#fff', padding: '60px 0 100px', textAlign: 'center', borderTop: '1px solid #fff' }}>
-        <div className={styles.container}>
+      <footer className={styles.footer} style={{ backgroundColor: '#000', color: '#fff', padding: '40px 20px 80px', textAlign: 'center', borderTop: '1px solid #fff', width: '100%' }}>
+        <div className={styles.container} style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className={styles.footerGrid}>
+            <div className={styles.footerGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '40px', width: '100%', textAlign: 'left' }}>
               <div className={styles.footerAbout}>
-                <h3 style={{ marginBottom: '15px', fontSize: '1.5rem', color: '#fff' }}>Amlakie's Portfolio</h3>
-                <p style={{ opacity: 0.8, lineHeight: 1.6, color: '#fff' }}>Thank you for visiting my personal portfolio website. Connect with me over socials. <br /><br /> Keep Rising 🚀.</p>
+                <h3 style={{ marginBottom: '15px', fontSize: 'clamp(1.2rem, 1.5vw, 1.5rem)', color: '#fff' }}>Amlakie's Portfolio</h3>
+                <p style={{ opacity: 0.8, lineHeight: 1.6, color: '#fff', fontSize: 'clamp(0.85rem, 1vw, 1rem)' }}>Thank you for visiting my personal portfolio website. Connect with me over socials. <br /><br /> Keep Rising 🚀.</p>
               </div>
               <div className={styles.footerLinks}>
-                <h3 style={{ marginBottom: '15px', fontSize: '1.2rem', color: '#fff' }}>Quick Links</h3>
+                <h3 style={{ marginBottom: '15px', fontSize: 'clamp(1rem, 1.2vw, 1.2rem)', color: '#fff' }}>Quick Links</h3>
                 <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
                   {['Home', 'About', 'Skills', 'Education', 'Work', 'Experience'].map((item) => (
                     <li key={item} style={{ marginBottom: '10px' }}>
-                      <a href={`#${item.toLowerCase()}`} style={{ textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }} onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
+                      <a href={`#${item.toLowerCase()}`} style={{ textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, fontSize: 'clamp(0.85rem, 1vw, 1rem)' }} onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
                         <FaChevronCircleRight /> {item}
                       </a>
                     </li>
@@ -901,23 +915,23 @@ const Portfolio = () => {
                 </ul>
               </div>
               <div className={styles.footerContact}>
-                <h3 style={{ marginBottom: '15px', fontSize: '1.2rem', color: '#fff' }}>Contact Info</h3>
-                <p style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', opacity: 0.9 }}><FaPhone size={20} /> {settings?.contact?.phone || '+251 9 12 43 55 73'}</p>
-                <p style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', opacity: 0.9 }}><IoMdMail size={20} /> {settings?.contact?.email || 'amlakieab4@gmail.com'}</p>
-                <p style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', opacity: 0.9 }}><FaMapMarkedAlt size={20} /> {settings?.contact?.location || 'Addis Ababa, Ethiopia'}</p>
-                <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+                <h3 style={{ marginBottom: '15px', fontSize: 'clamp(1rem, 1.2vw, 1.2rem)', color: '#fff' }}>Contact Info</h3>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', opacity: 0.9, fontSize: 'clamp(0.85rem, 1vw, 1rem)' }}><FaPhone size={18} /> {settings?.contact?.phone || '+251 9 12 43 55 73'}</p>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', opacity: 0.9, fontSize: 'clamp(0.85rem, 1vw, 1rem)' }}><IoMdMail size={18} /> {settings?.contact?.email || 'amlakieab4@gmail.com'}</p>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', opacity: 0.9, fontSize: 'clamp(0.85rem, 1vw, 1rem)' }}><FaMapMarkedAlt size={18} /> {settings?.contact?.location || 'Addis Ababa, Ethiopia'}</p>
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                   {settings?.contact?.socialLinks?.map((social, idx) => (
-                    <a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" aria-label={social.platform} style={{ fontSize: '1.5rem', color: '#fff', width: '45px', height: '45px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 255, 255, 0.1)', transition: 'all 0.3s ease', textDecoration: 'none' }} onMouseOver={(e) => (e.currentTarget.style.backgroundColor = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}>
+                    <a key={idx} href={social.url} target="_blank" rel="noopener noreferrer" aria-label={social.platform} style={{ fontSize: '1.3rem', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255, 255, 255, 0.1)', transition: 'all 0.3s ease', textDecoration: 'none' }} onMouseOver={(e) => (e.currentTarget.style.backgroundColor = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)')}>
                       {getSocialIcon(social.icon)}
                     </a>
                   ))}
                 </div>
               </div>
             </div>
-            <p style={{ fontSize: '1rem', opacity: 0.7, marginBottom: '30px', color: '#fff' }}>Designed with <span style={{ color: '#ff4d4d', margin: '0 5px' }}>❤</span> by <a href="https://www.linkedin.com/in/Amlakie" target="_blank" rel="noopener noreferrer" style={{ color: colors.primary, fontWeight: 600, textDecoration: 'none' }}>Amlakie Abebaw</a></p>
+            <p style={{ fontSize: 'clamp(0.8rem, 0.9vw, 1rem)', opacity: 0.7, marginTop: '30px', color: '#fff' }}>Designed with <span style={{ color: '#ff4d4d', margin: '0 5px' }}>❤</span> by <a href="https://www.linkedin.com/in/Amlakie" target="_blank" rel="noopener noreferrer" style={{ color: colors.primary, fontWeight: 600, textDecoration: 'none' }}>Amlakie Abebaw</a></p>
           </motion.div>
         </div>
-        <motion.button whileHover={{ scale: 1.1, boxShadow: `0 5px 15px rgba(255, 255, 255, 0.3)` }} whileTap={{ scale: 0.9 }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: 'none', padding: '12px 18px', borderRadius: '50px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.9rem', backdropFilter: 'blur(5px)' }} aria-label="Back to top" onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
+        <motion.button whileHover={{ scale: 1.1, boxShadow: `0 5px 15px rgba(255, 255, 255, 0.3)` }} whileTap={{ scale: 0.9 }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '50px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: 'clamp(0.8rem, 0.9vw, 0.9rem)', backdropFilter: 'blur(5px)' }} aria-label="Back to top" onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
           <FiArrowUp />
         </motion.button>
       </footer>
