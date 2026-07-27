@@ -192,6 +192,33 @@ const getImageUrl = (item: any): string | null => {
     }
   }
 
+  // Check for avatarData (testimonials)
+  if (item.avatarData) {
+    let base64 = '';
+    
+    if (typeof item.avatarData.data === 'string') {
+      base64 = item.avatarData.data;
+    } else if (item.avatarData.data?.$binary?.base64) {
+      base64 = item.avatarData.data.$binary.base64;
+    } else if (item.avatarData.data?.data) {
+      try {
+        if (typeof item.avatarData.data.data === 'string') {
+          base64 = item.avatarData.data.data;
+        } else if (item.avatarData.data.data instanceof Buffer || Array.isArray(item.avatarData.data.data)) {
+          base64 = Buffer.from(item.avatarData.data.data).toString('base64');
+        }
+      } catch (e) {
+        console.warn('Failed to convert avatarData:', e);
+      }
+    } else if (item.avatarData.data instanceof Buffer) {
+      base64 = item.avatarData.data.toString('base64');
+    }
+    
+    if (base64) {
+      return `data:${item.avatarData.contentType || 'image/jpeg'};base64,${base64}`;
+    }
+  }
+
   // Handle image URL (for fallback/default images)
   if (item.image) {
     if (item.image.startsWith('data:image')) {
@@ -205,6 +232,21 @@ const getImageUrl = (item: any): string | null => {
       return item.image;
     }
     return item.image;
+  }
+
+  // Handle avatar URL
+  if (item.avatar) {
+    if (item.avatar.startsWith('data:image')) {
+      return item.avatar;
+    }
+    if (item.avatar.startsWith('/uploads/')) {
+      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      return `${base}${item.avatar}`;
+    }
+    if (item.avatar.startsWith('/images/')) {
+      return item.avatar;
+    }
+    return item.avatar;
   }
 
   return null;
@@ -324,9 +366,7 @@ const getSocialIcon = (iconName: string): JSX.Element => {
 // ===== Extract data helper =====
 const extractData = (response: any): any => {
   try {
-    if (response?.data?.data?.data !== undefined) {
-      return response.data.data.data;
-    }
+    // Handle different response structures
     if (response?.data?.data !== undefined) {
       return response.data.data;
     }
@@ -360,13 +400,24 @@ const Portfolio = () => {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
-  // ===== FETCH DATA WITH PROPER ERROR HANDLING =====
+  // ===== FETCH ALL DATA =====
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true);
         
-        const results = await Promise.allSettled([
+        console.log('🚀 Fetching all portfolio data...');
+        
+        // Fetch all data in parallel
+        const [
+          projectsRes,
+          experiencesRes,
+          educationsRes,
+          testimonialsRes,
+          blogPostsRes,
+          skillsRes,
+          settingsRes
+        ] = await Promise.all([
           portfolioApi.getProjects({ featured: true, limit: 3 }),
           portfolioApi.getExperiences(),
           portfolioApi.getEducations(),
@@ -376,52 +427,60 @@ const Portfolio = () => {
           portfolioApi.getSettings(),
         ]);
 
-        if (results[0].status === 'fulfilled') {
-          const data = extractData(results[0].value);
-          if (Array.isArray(data) && data.length > 0) setProjects(data);
+        // Extract and set projects
+        const projectsData = extractData(projectsRes);
+        if (Array.isArray(projectsData) && projectsData.length > 0) {
+          console.log('📦 Projects loaded:', projectsData.length);
+          setProjects(projectsData);
         }
 
-        if (results[1].status === 'fulfilled') {
-          const data = extractData(results[1].value);
-          if (Array.isArray(data) && data.length > 0) setExperiences(data);
+        // Extract and set experiences
+        const experiencesData = extractData(experiencesRes);
+        if (Array.isArray(experiencesData) && experiencesData.length > 0) {
+          console.log('📦 Experiences loaded:', experiencesData.length);
+          setExperiences(experiencesData);
         }
 
-        if (results[2].status === 'fulfilled') {
-          const data = extractData(results[2].value);
-          if (Array.isArray(data) && data.length > 0) setEducations(data);
+        // Extract and set educations
+        const educationsData = extractData(educationsRes);
+        if (Array.isArray(educationsData) && educationsData.length > 0) {
+          console.log('📦 Educations loaded:', educationsData.length);
+          setEducations(educationsData);
         }
 
-        if (results[3].status === 'fulfilled') {
-          const data = extractData(results[3].value);
-          if (Array.isArray(data) && data.length > 0) setTestimonials(data);
+        // Extract and set testimonials
+        const testimonialsData = extractData(testimonialsRes);
+        if (Array.isArray(testimonialsData) && testimonialsData.length > 0) {
+          console.log('📦 Testimonials loaded:', testimonialsData.length);
+          setTestimonials(testimonialsData);
         }
 
-        if (results[4].status === 'fulfilled') {
-          const data = extractData(results[4].value);
-          if (Array.isArray(data) && data.length > 0) setBlogPosts(data);
+        // Extract and set blog posts
+        const blogPostsData = extractData(blogPostsRes);
+        if (Array.isArray(blogPostsData) && blogPostsData.length > 0) {
+          console.log('📦 Blog posts loaded:', blogPostsData.length);
+          setBlogPosts(blogPostsData);
         }
 
-        if (results[5].status === 'fulfilled') {
-          const data = extractData(results[5].value);
-          if (Array.isArray(data) && data.length > 0) {
-            const skills = data;
-            const frontend = skills.filter((s: Skill) => s.category === 'frontend');
-            const backend = skills.filter((s: Skill) => s.category === 'backend');
-            if (frontend.length > 0) setFrontendSkills(frontend);
-            if (backend.length > 0) setBackendSkills(backend);
-          }
+        // Extract and set skills
+        const skillsData = extractData(skillsRes);
+        if (Array.isArray(skillsData) && skillsData.length > 0) {
+          console.log('📦 Skills loaded:', skillsData.length);
+          const frontend = skillsData.filter((s: Skill) => s.category === 'frontend');
+          const backend = skillsData.filter((s: Skill) => s.category === 'backend');
+          if (frontend.length > 0) setFrontendSkills(frontend);
+          if (backend.length > 0) setBackendSkills(backend);
         }
 
-        if (results[6].status === 'fulfilled') {
-          const data = extractData(results[6].value);
-          if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-            console.log('📥 Settings loaded from database:', data);
-            setSettings(data);
-          }
+        // Extract and set settings
+        const settingsData = extractData(settingsRes);
+        if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
+          console.log('📦 Settings loaded from database');
+          setSettings(settingsData);
         }
 
       } catch (error) {
-        console.error('Failed to fetch portfolio data:', error);
+        console.error('❌ Failed to fetch portfolio data:', error);
       } finally {
         setLoading(false);
       }
@@ -489,148 +548,57 @@ const Portfolio = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections, activeSection]);
 
-  // ===== Get names from settings (from database) =====
+  // ===== Get names from settings =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
- // ===== Get profile images from settings (from database) - FIXED =====
-const getProfileImages = (): string[] => {
-  if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
-  
-  // Check if profileImagesData exists (from database)
-  if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
-    console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
-    console.log('📸 Raw profileImagesData:', settings.hero.profileImagesData);
+  // ===== Get profile images from settings - KEEP THIS UNCHANGED =====
+  const getProfileImages = (): string[] => {
+    if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
     
-    // Convert each image data to URL
-    const urls = settings.hero.profileImagesData
-      .map((img: any) => {
-        // The image object has structure: { data: Buffer, contentType: string, fileName: string }
-        // We need to convert the Buffer to base64
-        let base64 = '';
-        
-        if (img.data) {
-          // Check if data is a Buffer or has different formats
-          if (typeof img.data === 'string') {
-            base64 = img.data;
-          } else if (img.data?.$binary?.base64) {
-            base64 = img.data.$binary.base64;
-          } else if (img.data?.data) {
-            try {
-              if (typeof img.data.data === 'string') {
-                base64 = img.data.data;
-              } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
-                base64 = Buffer.from(img.data.data).toString('base64');
-              }
-            } catch (e) {
-              console.warn('Failed to convert profile image data:', e);
-            }
-          } else if (img.data instanceof Buffer) {
-            base64 = img.data.toString('base64');
-          } else if (img.data && typeof img.data === 'object') {
-            try {
-              const dataStr = JSON.stringify(img.data);
-              base64 = Buffer.from(dataStr).toString('base64');
-            } catch (e) {
-              console.warn('Failed to convert complex profile image data:', e);
-            }
-          }
-        }
-        
-        if (base64) {
-          const contentType = img.contentType || 'image/jpeg';
-          const dataUrl = `data:${contentType};base64,${base64}`;
-          console.log('📸 Converted profile image to data URL');
-          return dataUrl;
-        }
-        
-        console.warn('📸 Failed to convert profile image, no data found');
-        return null;
-      })
-      .filter((url: string | null) => url !== null);
-    
-    if (urls.length > 0) {
-      console.log('📸 Successfully converted', urls.length, 'profile images');
-      return urls as string[];
-    }
-  }
-  
-  // Check if profileImages exists (URLs from database)
-  if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
-    console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
-    // These are likely file paths, try to convert them
-    return settings.hero.profileImages.map((img: string) => {
-      if (img.startsWith('data:')) return img;
-      if (img.startsWith('/uploads/') || img.startsWith('/images/')) {
-        const base = process.env.NEXT_PUBLIC_API_URL || '';
-        return `${base}${img}`;
+    // Check if profileImagesData exists (from database)
+    if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
+      console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
+      const urls = settings.hero.profileImagesData
+        .map((img: any) => getProfileImageUrl(img))
+        .filter((url: string | null) => url !== null);
+      
+      if (urls.length > 0) {
+        return urls as string[];
       }
-      return img;
-    });
-  }
-  
-  return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
-};
+    }
+    
+    // Check if profileImages exists (URLs from database)
+    if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
+      console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
+      return settings.hero.profileImages.map((img: string) => {
+        const url = getProfileImageUrl(img);
+        return url || '/images/placeholder.jpg';
+      });
+    }
+    
+    return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
+  };
 
   const profiles = getProfileImages();
 
-  // ===== Get about image from settings (from database) - FIXED =====
-const getAboutImage = (): string => {
-  if (!settings?.about) return '/images/about4.jpg';
-  
-  // Check for imageData (from database)
-  if (settings.about.imageData) {
-    console.log('📸 Using about imageData from database');
-    const img = settings.about.imageData;
-    let base64 = '';
+  // ===== Get about image from settings =====
+  const getAboutImage = (): string => {
+    if (!settings?.about) return '/images/about4.jpg';
     
-    if (img.data) {
-      if (typeof img.data === 'string') {
-        base64 = img.data;
-      } else if (img.data?.$binary?.base64) {
-        base64 = img.data.$binary.base64;
-      } else if (img.data?.data) {
-        try {
-          if (typeof img.data.data === 'string') {
-            base64 = img.data.data;
-          } else if (img.data.data instanceof Buffer || Array.isArray(img.data.data)) {
-            base64 = Buffer.from(img.data.data).toString('base64');
-          }
-        } catch (e) {
-          console.warn('Failed to convert about image data:', e);
-        }
-      } else if (img.data instanceof Buffer) {
-        base64 = img.data.toString('base64');
-      }
+    if (settings.about.imageData) {
+      const url = getImageUrl({ imageData: settings.about.imageData });
+      if (url) return url;
     }
     
-    if (base64) {
-      const contentType = img.contentType || 'image/jpeg';
-      const dataUrl = `data:${contentType};base64,${base64}`;
-      console.log('📸 About image converted to data URL');
-      return dataUrl;
+    if (settings.about.image) {
+      const url = getImageUrl({ image: settings.about.image });
+      if (url) return url;
     }
-  }
-  
-  // Check for image URL (from database)
-  if (settings.about.image) {
-    console.log('📸 Using about image from database:', settings.about.image);
-    if (settings.about.image.startsWith('data:')) return settings.about.image;
-    if (settings.about.image.startsWith('/uploads/') || settings.about.image.startsWith('/images/')) {
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
-      return `${base}${settings.about.image}`;
-    }
-    return settings.about.image;
-  }
-  
-  return '/images/about4.jpg';
-};
+    
+    return '/images/about4.jpg';
+  };
 
   const aboutImage = getAboutImage();
-
-  // Log what we have
-  console.log('📸 Profile images count:', profiles.length);
-  console.log('📸 Profile images:', profiles);
-  console.log('📸 About image:', aboutImage);
 
   useEffect(() => {
     const nameInterval = setInterval(() => {
@@ -940,134 +908,119 @@ const getAboutImage = (): string => {
             </div>
             
             <div className={styles.projectGrid}>
-              {projects.length > 0 ? (() => {
-                const rows = [];
-                for (let i = 0; i < projects.length; i += 3) {
-                  rows.push(projects.slice(i, i + 3));
-                }
-                
-                return rows.map((row, rowIndex) => (
-                  <div key={rowIndex} className={styles.projectRow}>
-                    {row.map((project, index) => {
-                      const globalIndex = rowIndex * 3 + index;
-                      const isWide = globalIndex % 3 === 0;
-                      return (
-                        <motion.div 
-                          key={project._id} 
-                          className={`${styles.projectCard} ${isWide ? styles.wide : styles.narrow}`} 
-                          initial={{ opacity: 0, scale: 0.9 }} 
-                          whileInView={{ opacity: 1, scale: 1 }} 
-                          viewport={{ once: true }} 
-                          transition={{ duration: 0.5, delay: globalIndex * 0.1 }} 
-                          whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} 
+              {projects.length > 0 ? projects.map((project, index) => (
+                <motion.div 
+                  key={project._id} 
+                  className={styles.projectCard} 
+                  initial={{ opacity: 0, scale: 0.9 }} 
+                  whileInView={{ opacity: 1, scale: 1 }} 
+                  viewport={{ once: true }} 
+                  transition={{ duration: 0.5, delay: index * 0.1 }} 
+                  whileHover={{ y: -10, boxShadow: `0 15px 30px ${colors.shadow}` }} 
+                  style={{ 
+                    cursor: 'pointer', 
+                    backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
+                    borderRadius: '20px', 
+                    overflow: 'hidden', 
+                    boxShadow: `0 10px 30px ${colors.shadow}`, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    transition: 'all 0.3s ease' 
+                  }}
+                >
+                  <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
+                    <img 
+                      src={getImageUrl(project) || '/images/placeholder.jpg'} 
+                      alt={project.title} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        console.error('Failed to load project image:', project.title);
+                        (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                      }}
+                    />
+                    <motion.div 
+                      className={styles.projectOverlay} 
+                      style={{ 
+                        position: 'absolute', 
+                        top: 0, 
+                        left: 0, 
+                        width: '100%', 
+                        height: '100%', 
+                        background: `linear-gradient(to top, ${colors.primary}ee, transparent)`, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        opacity: 0, 
+                        transition: 'opacity 0.5s ease-in-out' 
+                      }} 
+                      whileHover={{ opacity: 1 }}
+                    >
+                      {project.liveUrl && (
+                        <motion.a 
+                          href={project.liveUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          whileHover={{ scale: 1.1 }} 
+                          whileTap={{ scale: 0.9 }} 
                           style={{ 
+                            background: colors.primary, 
+                            color: '#ffffff', 
+                            border: 'none', 
+                            padding: '12px 25px', 
+                            borderRadius: '50px', 
+                            fontWeight: 600, 
                             cursor: 'pointer', 
-                            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
-                            borderRadius: '20px', 
-                            overflow: 'hidden', 
-                            boxShadow: `0 10px 30px ${colors.shadow}`, 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            transition: 'all 0.3s ease' 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            fontSize: '0.9rem', 
+                            textDecoration: 'none' 
                           }}
                         >
-                          <div className={styles.projectImage} style={{ position: 'relative', height: '200px', overflow: 'hidden', flexShrink: 0 }}>
-                            <img 
-                              src={getImageUrl(project) || '/images/placeholder.jpg'} 
-                              alt={project.title} 
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              onError={(e) => {
-                                console.error('Failed to load project image:', project.title);
-                                (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                              }}
-                            />
-                            <motion.div 
-                              className={styles.projectOverlay} 
-                              style={{ 
-                                position: 'absolute', 
-                                top: 0, 
-                                left: 0, 
-                                width: '100%', 
-                                height: '100%', 
-                                background: `linear-gradient(to top, ${colors.primary}ee, transparent)`, 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                opacity: 0, 
-                                transition: 'opacity 0.5s ease-in-out' 
-                              }} 
-                              whileHover={{ opacity: 1 }}
-                            >
-                              {project.liveUrl && (
-                                <motion.a 
-                                  href={project.liveUrl} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  whileHover={{ scale: 1.1 }} 
-                                  whileTap={{ scale: 0.9 }} 
-                                  style={{ 
-                                    background: colors.primary, 
-                                    color: '#ffffff', 
-                                    border: 'none', 
-                                    padding: '12px 25px', 
-                                    borderRadius: '50px', 
-                                    fontWeight: 600, 
-                                    cursor: 'pointer', 
-                                    display: 'inline-flex', 
-                                    alignItems: 'center', 
-                                    fontSize: '0.9rem', 
-                                    textDecoration: 'none' 
-                                  }}
-                                >
-                                  <FiExternalLink style={{ marginRight: '8px' }} /> View Project
-                                </motion.a>
-                              )}
-                            </motion.div>
-                          </div>
-                          
-                          <div className={styles.projectInfo} style={{ padding: '20px', flex: 1 }}>
-                            <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
-                              {project.title}
-                            </h3>
-                            <p style={{ marginBottom: '15px', color: colors.textPrimary, fontSize: '0.95rem', lineHeight: 1.5 }}>
-                              {project.description}
-                            </p>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div className={styles.projectTags}>
-                                {project.tags.map((tag, i) => (
-                                  <span 
-                                    key={i} 
-                                    style={{ 
-                                      backgroundColor: colors.primary + '20', 
-                                      color: colors.primary, 
-                                      padding: '5px 10px', 
-                                      borderRadius: '50px', 
-                                      fontSize: '0.75rem', 
-                                      fontWeight: 500 
-                                    }}
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                              {project.github && (
-                                <a 
-                                  href={project.github} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  style={{ color: colors.textPrimary, fontSize: '1.5rem', marginLeft: '15px' }}
-                                >
-                                  <FiGithub />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                          <FiExternalLink style={{ marginRight: '8px' }} /> View Project
+                        </motion.a>
+                      )}
+                    </motion.div>
                   </div>
-                ));
-              })() : (
+                  
+                  <div className={styles.projectInfo} style={{ padding: '20px', flex: 1 }}>
+                    <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
+                      {project.title}
+                    </h3>
+                    <p style={{ marginBottom: '15px', color: colors.textPrimary, fontSize: '0.95rem', lineHeight: 1.5 }}>
+                      {project.description}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className={styles.projectTags}>
+                        {project.tags.map((tag, i) => (
+                          <span 
+                            key={i} 
+                            style={{ 
+                              backgroundColor: colors.primary + '20', 
+                              color: colors.primary, 
+                              padding: '5px 10px', 
+                              borderRadius: '50px', 
+                              fontSize: '0.75rem', 
+                              fontWeight: 500 
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      {project.github && (
+                        <a 
+                          href={project.github} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          style={{ color: colors.textPrimary, fontSize: '1.5rem', marginLeft: '15px' }}
+                        >
+                          <FiGithub />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )) : (
                 <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>
                   No projects data available
                 </p>
