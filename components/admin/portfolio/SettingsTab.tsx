@@ -45,9 +45,21 @@ interface Settings {
 }
 
 const initialSettings: Settings = {
-  hero: { title: "Hi, I'm Amlakie", subtitle: 'Software Engineer', description: 'I build exceptional digital experiences.', profileImages: [], resumeUrl: '' },
+  hero: { 
+    title: "Hi, I'm Amlakie", 
+    subtitle: 'Software Engineer', 
+    description: 'I build exceptional digital experiences.', 
+    profileImages: [], 
+    profileImagesData: [],
+    resumeUrl: '' 
+  },
   about: { title: 'About Me', description: '', image: '' },
-  contact: { email: 'amlakieab4@gmail.com', phone: '+251 9 12 43 65 73', location: 'Addis Ababa, Ethiopia', socialLinks: [] },
+  contact: { 
+    email: 'amlakieab4@gmail.com', 
+    phone: '+251 9 12 43 65 73', 
+    location: 'Addis Ababa, Ethiopia', 
+    socialLinks: [] 
+  },
   stats: { projectsCompleted: 25, happyClients: 15, linesOfCode: 50000, yearsExperience: 3 },
   seo: { title: 'Amlakie - Software Developer', description: 'Personal portfolio of Amlakie.', keywords: [], ogImage: '' },
 };
@@ -123,6 +135,7 @@ export default function SettingsTab() {
         }
       }
     } catch (err: any) {
+      console.error('Failed to load settings:', err);
       setError(err.response?.data?.message || 'Failed to load settings');
     } finally {
       setLoading(false);
@@ -203,47 +216,54 @@ export default function SettingsTab() {
   };
 
   const handleSubmit = async () => {
-  try {
-    setSaving(true);
-    const fd = new FormData();
-    
-    // IMPORTANT: Remove profileImagesData from hero before sending as JSON
-    const heroData = { ...settings.hero };
-    delete heroData.profileImagesData; // Remove binary data from JSON
-    
-    // IMPORTANT: Remove imageData from about before sending as JSON
-    const aboutData = { ...settings.about };
-    delete aboutData.imageData; // Remove binary data from JSON
-    
-    fd.append('hero', JSON.stringify(heroData));
-    fd.append('about', JSON.stringify(aboutData));
-    fd.append('contact', JSON.stringify(settings.contact));
-    fd.append('stats', JSON.stringify(settings.stats));
-    fd.append('seo', JSON.stringify(settings.seo));
-    
-    // Add about image
-    if (aboutImage) {
-      fd.append('aboutImage', aboutImage);
-    }
-    
-    // Add profile images
-    profileImages.forEach(file => {
-      fd.append('profileImages', file);
-    });
+    try {
+      setSaving(true);
+      setError('');
+      
+      const fd = new FormData();
+      
+      // Prepare data - remove binary data from JSON
+      const heroData = { ...settings.hero };
+      delete heroData.profileImagesData;
+      
+      const aboutData = { ...settings.about };
+      delete aboutData.imageData;
+      
+      fd.append('hero', JSON.stringify(heroData));
+      fd.append('about', JSON.stringify(aboutData));
+      fd.append('contact', JSON.stringify(settings.contact));
+      fd.append('stats', JSON.stringify(settings.stats));
+      fd.append('seo', JSON.stringify(settings.seo));
+      
+      // Add about image
+      if (aboutImage) {
+        fd.append('aboutImage', aboutImage);
+      }
+      
+      // Add profile images
+      profileImages.forEach(file => {
+        fd.append('profileImages', file);
+      });
 
-    console.log('📤 Sending settings update...');
-    const response = await portfolioApi.updateSettings(fd);
-    console.log('✅ Settings updated successfully:', response);
-    
-    setSuccess('Settings updated successfully');
-    fetchSettings(); // Refresh
-  } catch (err: any) {
-    console.error('❌ Failed to update settings:', err);
-    setError(err.response?.data?.message || 'Failed to update settings');
-  } finally {
-    setSaving(false);
-  }
-};
+      console.log('📤 Sending settings update...');
+      console.log('📎 About image:', aboutImage ? aboutImage.name : 'None');
+      console.log('📎 Profile images:', profileImages.length);
+      
+      const response = await portfolioApi.updateSettings(fd);
+      console.log('✅ Settings updated successfully:', response);
+      
+      setSuccess('Settings updated successfully');
+      // Reset file states after successful save
+      setAboutImage(null);
+      setProfileImages([]);
+      fetchSettings(); // Refresh
+    } catch (err: any) {
+      console.error('❌ Failed to update settings:', err);
+      setError(err.response?.data?.message || 'Failed to update settings');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const textFieldStyle = {
     '& .MuiOutlinedInput-root': {
@@ -366,7 +386,7 @@ export default function SettingsTab() {
         </Box>
       </Paper>
 
-      {/* Contact Section - Keep as is */}
+      {/* Contact Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Contact</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -389,7 +409,7 @@ export default function SettingsTab() {
         <Button startIcon={<Add />} onClick={addSocialLink} sx={{ color: isDark ? '#00ffff' : '#007bff' }}>Add Social Link</Button>
       </Paper>
 
-      {/* Stats Section - Keep as is */}
+      {/* Stats Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Stats (visible on homepage)</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -400,7 +420,7 @@ export default function SettingsTab() {
         </Box>
       </Paper>
 
-      {/* SEO Section - Keep as is */}
+      {/* SEO Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>SEO</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
@@ -417,8 +437,12 @@ export default function SettingsTab() {
         </Button>
       </Box>
 
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}><Alert severity="error" onClose={() => setError('')}>{error}</Alert></Snackbar>
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}><Alert severity="success" onClose={() => setSuccess('')}>{success}</Alert></Snackbar>
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="error" onClose={() => setError('')}>{error}</Alert>
+      </Snackbar>
+      <Snackbar open={!!success} autoHideDuration={6000} onClose={() => setSuccess('')} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="success" onClose={() => setSuccess('')}>{success}</Alert>
+      </Snackbar>
     </Box>
   );
 }
