@@ -492,7 +492,7 @@ const Portfolio = () => {
   // ===== Get names from settings (from database) =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
-  // ===== Get profile images from settings (from database) - SAME as SettingsTab =====
+ // ===== Get profile images from settings (from database) - SAME as SettingsTab =====
   const getProfileImages = (): string[] => {
     if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
     
@@ -503,6 +503,7 @@ const Portfolio = () => {
       const urls = settings.hero.profileImagesData
         .map((img: any) => {
           // Pass the entire image object to getProfileImageUrl
+          // The image object might have { data, contentType, fileName } structure
           const url = getProfileImageUrl(img);
           console.log('📸 Converted profile image:', url ? 'Success' : 'Failed');
           return url;
