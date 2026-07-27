@@ -45,20 +45,20 @@ interface Settings {
 }
 
 const initialSettings: Settings = {
-  hero: { 
-    title: "Hi, I'm Amlakie", 
-    subtitle: 'Software Engineer', 
-    description: 'I build exceptional digital experiences.', 
-    profileImages: [], 
+  hero: {
+    title: "Hi, I'm Amlakie",
+    subtitle: 'Software Engineer',
+    description: 'I build exceptional digital experiences.',
+    profileImages: [],
     profileImagesData: [],
-    resumeUrl: '' 
+    resumeUrl: ''
   },
   about: { title: 'About Me', description: '', image: '' },
-  contact: { 
-    email: 'amlakieab4@gmail.com', 
-    phone: '+251 9 12 43 65 73', 
-    location: 'Addis Ababa, Ethiopia', 
-    socialLinks: [] 
+  contact: {
+    email: 'amlakieab4@gmail.com',
+    phone: '+251 9 12 43 65 73',
+    location: 'Addis Ababa, Ethiopia',
+    socialLinks: []
   },
   stats: { projectsCompleted: 25, happyClients: 15, linesOfCode: 50000, yearsExperience: 3 },
   seo: { title: 'Amlakie - Software Developer', description: 'Personal portfolio of Amlakie.', keywords: [], ogImage: '' },
@@ -66,7 +66,7 @@ const initialSettings: Settings = {
 
 const getImageUrl = (item: any): string | null => {
   if (!item) return null;
-  
+
   if (item.imageData?.data) {
     let base64 = '';
     if (typeof item.imageData.data === 'string') {
@@ -84,11 +84,11 @@ const getImageUrl = (item: any): string | null => {
       return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
-  
+
   if (item.image?.startsWith('data:image')) {
     return item.image;
   }
-  
+
   return item.image || null;
 };
 
@@ -102,12 +102,10 @@ export default function SettingsTab() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  // About image
+
   const [aboutImage, setAboutImage] = useState<File | null>(null);
   const [aboutImagePreview, setAboutImagePreview] = useState<string | null>(null);
-  
-  // Profile images
+
   const [profileImages, setProfileImages] = useState<File[]>([]);
   const [profileImagePreviews, setProfileImagePreviews] = useState<string[]>([]);
 
@@ -118,17 +116,35 @@ export default function SettingsTab() {
       const data = res.data.data;
       if (data) {
         setSettings(data);
-        
-        // Set about image preview
-        if (data.about?.image) {
+
+        if (data.about?.imageData) {
+          const preview = getImageUrl(data.about);
+          if (preview) setAboutImagePreview(preview);
+        } else if (data.about?.image) {
           setAboutImagePreview(data.about.image);
-        } else if (data.about?.imageData) {
-          setAboutImagePreview(getImageUrl(data.about));
         }
-        
-        // Set profile image previews
+
         if (data.hero?.profileImagesData && data.hero.profileImagesData.length > 0) {
-          const previews = data.hero.profileImagesData.map((img: any) => getImageUrl({ imageData: img }));
+          const previews = data.hero.profileImagesData.map((img: any) => {
+            if (img.data) {
+              let base64 = '';
+              if (typeof img.data === 'string') {
+                base64 = img.data;
+              } else if (img.data?.$binary?.base64) {
+                base64 = img.data.$binary.base64;
+              } else if (img.data?.data) {
+                try {
+                  base64 = Buffer.from(img.data.data).toString('base64');
+                } catch (e) {
+                  console.warn('Failed to convert profile image:', e);
+                }
+              }
+              if (base64) {
+                return `data:${img.contentType || 'image/jpeg'};base64,${base64}`;
+              }
+            }
+            return null;
+          });
           setProfileImagePreviews(previews.filter((p: string | null) => p !== null));
         } else if (data.hero?.profileImages && data.hero.profileImages.length > 0) {
           setProfileImagePreviews(data.hero.profileImages);
@@ -177,7 +193,6 @@ export default function SettingsTab() {
     }));
   };
 
-  // About image handlers
   const handleAboutImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -193,13 +208,12 @@ export default function SettingsTab() {
     setAboutImagePreview(null);
   };
 
-  // Profile images handlers
   const handleProfileImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const fileArray = Array.from(files);
       setProfileImages(prev => [...prev, ...fileArray]);
-      
+
       fileArray.forEach(file => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -219,28 +233,25 @@ export default function SettingsTab() {
     try {
       setSaving(true);
       setError('');
-      
+
       const fd = new FormData();
-      
-      // Prepare data - remove binary data from JSON
+
       const heroData = { ...settings.hero };
       delete heroData.profileImagesData;
-      
+
       const aboutData = { ...settings.about };
       delete aboutData.imageData;
-      
+
       fd.append('hero', JSON.stringify(heroData));
       fd.append('about', JSON.stringify(aboutData));
       fd.append('contact', JSON.stringify(settings.contact));
       fd.append('stats', JSON.stringify(settings.stats));
       fd.append('seo', JSON.stringify(settings.seo));
-      
-      // Add about image
+
       if (aboutImage) {
         fd.append('aboutImage', aboutImage);
       }
-      
-      // Add profile images
+
       profileImages.forEach(file => {
         fd.append('profileImages', file);
       });
@@ -248,15 +259,14 @@ export default function SettingsTab() {
       console.log('📤 Sending settings update...');
       console.log('📎 About image:', aboutImage ? aboutImage.name : 'None');
       console.log('📎 Profile images:', profileImages.length);
-      
+
       const response = await portfolioApi.updateSettings(fd);
       console.log('✅ Settings updated successfully:', response);
-      
+
       setSuccess('Settings updated successfully');
-      // Reset file states after successful save
       setAboutImage(null);
       setProfileImages([]);
-      fetchSettings(); // Refresh
+      fetchSettings();
     } catch (err: any) {
       console.error('❌ Failed to update settings:', err);
       setError(err.response?.data?.message || 'Failed to update settings');
@@ -288,8 +298,7 @@ export default function SettingsTab() {
       {/* Hero Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Hero Section</Typography>
-        
-        {/* Profile Images Upload */}
+
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, color: isDark ? '#a8b2d1' : '#666' }}>Profile Images</Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -411,7 +420,7 @@ export default function SettingsTab() {
 
       {/* Stats Section */}
       <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Stats (visible on homepage)</Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>Stats</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField fullWidth label="Projects Completed" type="number" value={settings.stats.projectsCompleted} onChange={(e) => handleChange('stats', 'projectsCompleted', Number(e.target.value))} size="small" sx={textFieldStyle} />
           <TextField fullWidth label="Happy Clients" type="number" value={settings.stats.happyClients} onChange={(e) => handleChange('stats', 'happyClients', Number(e.target.value))} size="small" sx={textFieldStyle} />
@@ -426,7 +435,7 @@ export default function SettingsTab() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField fullWidth label="Meta Title" value={settings.seo.title} onChange={(e) => handleChange('seo', 'title', e.target.value)} size="small" sx={textFieldStyle} />
           <TextField fullWidth label="Meta Description" value={settings.seo.description} onChange={(e) => handleChange('seo', 'description', e.target.value)} size="small" sx={textFieldStyle} />
-          <TextField fullWidth label="Keywords (comma separated)" value={settings.seo.keywords.join(', ')} onChange={(e) => handleChange('seo', 'keywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} size="small" sx={textFieldStyle} />
+          <TextField fullWidth label="Keywords" value={settings.seo.keywords.join(', ')} onChange={(e) => handleChange('seo', 'keywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} size="small" sx={textFieldStyle} />
           <TextField fullWidth label="OG Image URL" value={settings.seo.ogImage} onChange={(e) => handleChange('seo', 'ogImage', e.target.value)} size="small" sx={textFieldStyle} />
         </Box>
       </Paper>
