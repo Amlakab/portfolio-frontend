@@ -1144,7 +1144,7 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
+      {/* ===== FOOTER  ===== */}
       <footer className={styles.footer} style={{ backgroundColor: '#000', color: '#fff', padding: '60px 0 100px', textAlign: 'center', borderTop: '1px solid #fff' }}>
         <div className={styles.container}>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
