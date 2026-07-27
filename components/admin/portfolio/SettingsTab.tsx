@@ -203,43 +203,47 @@ export default function SettingsTab() {
   };
 
   const handleSubmit = async () => {
-    try {
-      setSaving(true);
-      const fd = new FormData();
-      
-      // Add JSON data
-      fd.append('hero', JSON.stringify({
-        ...settings.hero,
-        // Don't send image data as JSON
-        profileImagesData: undefined,
-      }));
-      fd.append('about', JSON.stringify({
-        ...settings.about,
-        imageData: undefined,
-      }));
-      fd.append('contact', JSON.stringify(settings.contact));
-      fd.append('stats', JSON.stringify(settings.stats));
-      fd.append('seo', JSON.stringify(settings.seo));
-      
-      // Add about image
-      if (aboutImage) {
-        fd.append('aboutImage', aboutImage);
-      }
-      
-      // Add profile images
-      profileImages.forEach(file => {
-        fd.append('profileImages', file);
-      });
-
-      await portfolioApi.updateSettings(fd);
-      setSuccess('Settings updated successfully');
-      fetchSettings(); // Refresh
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update settings');
-    } finally {
-      setSaving(false);
+  try {
+    setSaving(true);
+    const fd = new FormData();
+    
+    // IMPORTANT: Remove profileImagesData from hero before sending as JSON
+    const heroData = { ...settings.hero };
+    delete heroData.profileImagesData; // Remove binary data from JSON
+    
+    // IMPORTANT: Remove imageData from about before sending as JSON
+    const aboutData = { ...settings.about };
+    delete aboutData.imageData; // Remove binary data from JSON
+    
+    fd.append('hero', JSON.stringify(heroData));
+    fd.append('about', JSON.stringify(aboutData));
+    fd.append('contact', JSON.stringify(settings.contact));
+    fd.append('stats', JSON.stringify(settings.stats));
+    fd.append('seo', JSON.stringify(settings.seo));
+    
+    // Add about image
+    if (aboutImage) {
+      fd.append('aboutImage', aboutImage);
     }
-  };
+    
+    // Add profile images
+    profileImages.forEach(file => {
+      fd.append('profileImages', file);
+    });
+
+    console.log('📤 Sending settings update...');
+    const response = await portfolioApi.updateSettings(fd);
+    console.log('✅ Settings updated successfully:', response);
+    
+    setSuccess('Settings updated successfully');
+    fetchSettings(); // Refresh
+  } catch (err: any) {
+    console.error('❌ Failed to update settings:', err);
+    setError(err.response?.data?.message || 'Failed to update settings');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const textFieldStyle = {
     '& .MuiOutlinedInput-root': {
