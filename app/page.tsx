@@ -151,13 +151,21 @@ const DEFAULT_SKILLS: Skill[] = [
   { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
 ];
 
-// ===== IMPROVED: Helper to get image URL - Works for all image types =====
+// ===== Get API Base URL =====
+const getApiBaseUrl = (): string => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  return baseUrl;
+};
+
+// ===== Helper to get image URL - Same as SettingsTab =====
 const getImageUrl = (item: any): string | null => {
   if (!item) return null;
-  
+
   // Check for imageData (projects, about, blog)
-  if (item.imageData?.data) {
+  if (item.imageData) {
     let base64 = '';
+    
+    // Handle different data formats
     if (typeof item.imageData.data === 'string') {
       base64 = item.imageData.data;
     } else if (item.imageData.data?.$binary?.base64) {
@@ -174,15 +182,24 @@ const getImageUrl = (item: any): string | null => {
       }
     } else if (item.imageData.data instanceof Buffer) {
       base64 = item.imageData.data.toString('base64');
+    } else if (item.imageData.data && typeof item.imageData.data === 'object') {
+      try {
+        const dataStr = JSON.stringify(item.imageData.data);
+        base64 = Buffer.from(dataStr).toString('base64');
+      } catch (e) {
+        console.warn('Failed to convert complex imageData:', e);
+      }
     }
+    
     if (base64) {
       return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
-  
+
   // Check for avatarData (testimonials)
-  if (item.avatarData?.data) {
+  if (item.avatarData) {
     let base64 = '';
+    
     if (typeof item.avatarData.data === 'string') {
       base64 = item.avatarData.data;
     } else if (item.avatarData.data?.$binary?.base64) {
@@ -200,18 +217,19 @@ const getImageUrl = (item: any): string | null => {
     } else if (item.avatarData.data instanceof Buffer) {
       base64 = item.avatarData.data.toString('base64');
     }
+    
     if (base64) {
       return `data:${item.avatarData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
-  
-  // Handle image string (could be data URL or path)
+
+  // Handle image URL
   if (item.image) {
     if (item.image.startsWith('data:image')) {
       return item.image;
     }
     if (item.image.startsWith('/uploads/')) {
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      const base = getApiBaseUrl();
       return `${base}${item.image}`;
     }
     if (item.image.startsWith('/images/')) {
@@ -219,14 +237,14 @@ const getImageUrl = (item: any): string | null => {
     }
     return item.image;
   }
-  
-  // Handle avatar string
+
+  // Handle avatar URL
   if (item.avatar) {
     if (item.avatar.startsWith('data:image')) {
       return item.avatar;
     }
     if (item.avatar.startsWith('/uploads/')) {
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      const base = getApiBaseUrl();
       return `${base}${item.avatar}`;
     }
     if (item.avatar.startsWith('/images/')) {
@@ -234,20 +252,19 @@ const getImageUrl = (item: any): string | null => {
     }
     return item.avatar;
   }
-  
+
   return null;
 };
 
-// ===== IMPROVED: Helper to get profile image URL =====
-const getProfileImageUrl = (profileImage: string | any): string => {
-  if (!profileImage) return '/images/placeholder.jpg';
-  
+// ===== Helper to get profile image URL - Same as SettingsTab =====
+const getProfileImageUrl = (profileImage: any): string | null => {
+  if (!profileImage) return null;
+
   // If it's a string URL
   if (typeof profileImage === 'string') {
     if (profileImage.startsWith('data:')) return profileImage;
-    if (profileImage.startsWith('http')) return profileImage;
     if (profileImage.startsWith('/uploads/')) {
-      const base = process.env.NEXT_PUBLIC_API_URL || '';
+      const base = getApiBaseUrl();
       return `${base}${profileImage}`;
     }
     if (profileImage.startsWith('/images/')) {
@@ -255,33 +272,64 @@ const getProfileImageUrl = (profileImage: string | any): string => {
     }
     return profileImage;
   }
-  
-  // If it's an object with data (profileImagesData from backend)
-  if (profileImage?.data) {
+
+  // If it's an object with imageData
+  if (profileImage.imageData) {
     let base64 = '';
-    if (typeof profileImage.data === 'string') {
-      base64 = profileImage.data;
-    } else if (profileImage.data?.$binary?.base64) {
-      base64 = profileImage.data.$binary.base64;
-    } else if (profileImage.data?.data) {
+    const data = profileImage.imageData;
+    
+    if (typeof data.data === 'string') {
+      base64 = data.data;
+    } else if (data.data?.$binary?.base64) {
+      base64 = data.data.$binary.base64;
+    } else if (data.data?.data) {
       try {
-        if (typeof profileImage.data.data === 'string') {
-          base64 = profileImage.data.data;
-        } else if (profileImage.data.data instanceof Buffer || Array.isArray(profileImage.data.data)) {
-          base64 = Buffer.from(profileImage.data.data).toString('base64');
+        if (typeof data.data.data === 'string') {
+          base64 = data.data.data;
+        } else if (data.data.data instanceof Buffer || Array.isArray(data.data.data)) {
+          base64 = Buffer.from(data.data.data).toString('base64');
         }
       } catch (e) {
         console.warn('Failed to convert profile image:', e);
       }
-    } else if (profileImage.data instanceof Buffer) {
-      base64 = profileImage.data.toString('base64');
+    } else if (data.data instanceof Buffer) {
+      base64 = data.data.toString('base64');
     }
+    
     if (base64) {
-      return `data:${profileImage.contentType || 'image/jpeg'};base64,${base64}`;
+      return `data:${data.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
-  
-  return '/images/placeholder.jpg';
+
+  // If it's directly the image data object
+  if (profileImage.data) {
+    let base64 = '';
+    const data = profileImage;
+    
+    if (typeof data.data === 'string') {
+      base64 = data.data;
+    } else if (data.data?.$binary?.base64) {
+      base64 = data.data.$binary.base64;
+    } else if (data.data?.data) {
+      try {
+        if (typeof data.data.data === 'string') {
+          base64 = data.data.data;
+        } else if (data.data.data instanceof Buffer || Array.isArray(data.data.data)) {
+          base64 = Buffer.from(data.data.data).toString('base64');
+        }
+      } catch (e) {
+        console.warn('Failed to convert profile image:', e);
+      }
+    } else if (data.data instanceof Buffer) {
+      base64 = data.data.toString('base64');
+    }
+    
+    if (base64) {
+      return `data:${data.contentType || 'image/jpeg'};base64,${base64}`;
+    }
+  }
+
+  return null;
 };
 
 // ===== Helper: get icon component =====
@@ -413,7 +461,7 @@ const Portfolio = () => {
         if (results[6].status === 'fulfilled') {
           const data = extractData(results[6].value);
           if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-            console.log('📥 Settings loaded:', data);
+            console.log('📥 Settings loaded from database:', data);
             setSettings(data);
           }
         }
@@ -487,22 +535,30 @@ const Portfolio = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections, activeSection]);
 
-  // ===== Get names from settings =====
+  // ===== Get names from settings (from database) =====
   const names = settings?.hero?.title ? settings.hero.title.split(' ') : ['Amlakie', 'Developer', 'Designer', 'Creator'];
   
-  // ===== Get profile images from settings =====
+  // ===== Get profile images from settings (from database) =====
   const getProfileImages = (): string[] => {
     if (!settings?.hero) return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
     
-    // Check if profileImagesData exists (from backend)
+    // Check if profileImagesData exists (from backend database)
     if (settings.hero.profileImagesData && settings.hero.profileImagesData.length > 0) {
-      // Convert each image data to URL
-      return settings.hero.profileImagesData.map((img: any) => getProfileImageUrl(img));
+      console.log('📸 Using profileImagesData from database:', settings.hero.profileImagesData.length);
+      // Convert each image data to URL using the same function as SettingsTab
+      const urls = settings.hero.profileImagesData
+        .map((img: any) => getProfileImageUrl(img))
+        .filter((url: string | null) => url !== null);
+      
+      if (urls.length > 0) {
+        return urls as string[];
+      }
     }
     
-    // Check if profileImages exists (URLs)
+    // Check if profileImages exists (URLs from database)
     if (settings.hero.profileImages && settings.hero.profileImages.length > 0) {
-      return settings.hero.profileImages.map((img: string) => getProfileImageUrl(img));
+      console.log('📸 Using profileImages from database:', settings.hero.profileImages.length);
+      return settings.hero.profileImages.map((img: string) => getProfileImageUrl(img) || '/images/placeholder.jpg');
     }
     
     return ['/images/profile1.jpg', '/images/profile2.jpg', '/images/profile3.jpg'];
@@ -510,18 +566,20 @@ const Portfolio = () => {
 
   const profiles = getProfileImages();
 
-  // ===== Get about image from settings =====
+  // ===== Get about image from settings (from database) =====
   const getAboutImage = (): string => {
     if (!settings?.about) return '/images/about4.jpg';
     
-    // Check for imageData
+    // Check for imageData (from database)
     if (settings.about.imageData) {
+      console.log('📸 Using about imageData from database');
       const url = getImageUrl({ imageData: settings.about.imageData });
       if (url) return url;
     }
     
-    // Check for image URL
+    // Check for image URL (from database)
     if (settings.about.image) {
+      console.log('📸 Using about image from database:', settings.about.image);
       const url = getImageUrl({ image: settings.about.image });
       if (url) return url;
     }
@@ -1144,7 +1202,7 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* ===== FOOTER  ===== */}
+      {/* ===== FOOTER ===== */}
       <footer className={styles.footer} style={{ backgroundColor: '#000', color: '#fff', padding: '60px 0 100px', textAlign: 'center', borderTop: '1px solid #fff' }}>
         <div className={styles.container}>
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
