@@ -241,10 +241,12 @@ export default function SettingsTab() {
   const [aboutImage, setAboutImage] = useState<File | null>(null);
   const [aboutImagePreview, setAboutImagePreview] = useState<string | null>(null);
   const [existingAboutImage, setExistingAboutImage] = useState<string | null>(null);
+  const [removedAboutImage, setRemovedAboutImage] = useState(false);
 
   const [profileImages, setProfileImages] = useState<File[]>([]);
   const [profileImagePreviews, setProfileImagePreviews] = useState<string[]>([]);
   const [existingProfileImages, setExistingProfileImages] = useState<string[]>([]);
+  const [removedProfileImages, setRemovedProfileImages] = useState<number[]>([]);
 
   // Form field styles
   const textFieldStyle = {
@@ -347,6 +349,7 @@ export default function SettingsTab() {
     const file = e.target.files?.[0];
     if (file) {
       setAboutImage(file);
+      setRemovedAboutImage(false);
       const reader = new FileReader();
       reader.onloadend = () => {
         setAboutImagePreview(reader.result as string);
@@ -357,6 +360,7 @@ export default function SettingsTab() {
   };
 
   const removeAboutImage = () => {
+    setRemovedAboutImage(true);
     setAboutImage(null);
     setAboutImagePreview(null);
     setExistingAboutImage(null);
@@ -379,6 +383,9 @@ export default function SettingsTab() {
   };
 
   const removeProfileImage = (index: number) => {
+    // Track which image was removed
+    setRemovedProfileImages(prev => [...prev, index]);
+    
     if (index < existingProfileImages.length) {
       setExistingProfileImages(prev => prev.filter((_, i) => i !== index));
       setProfileImagePreviews(prev => prev.filter((_, i) => i !== index));
@@ -412,19 +419,33 @@ export default function SettingsTab() {
       fd.append('stats', JSON.stringify(settings.stats));
       fd.append('seo', JSON.stringify(settings.seo));
 
+      // Handle about image
       if (aboutImage) {
         fd.append('aboutImage', aboutImage);
       }
+      
+      // Send flag if about image was removed
+      if (removedAboutImage) {
+        fd.append('removeAboutImage', 'true');
+      }
 
+      // Handle profile images
       profileImages.forEach(file => {
         fd.append('profileImages', file);
       });
+      
+      // Send indices of removed profile images
+      if (removedProfileImages.length > 0) {
+        fd.append('removedProfileImages', JSON.stringify(removedProfileImages));
+      }
 
       const response = await portfolioApi.updateSettings(fd);
       
       setSuccess('Settings updated successfully');
       setAboutImage(null);
       setProfileImages([]);
+      setRemovedProfileImages([]);
+      setRemovedAboutImage(false);
       await fetchSettings();
     } catch (err: any) {
       console.error('❌ Failed to update settings:', err);
@@ -663,7 +684,7 @@ export default function SettingsTab() {
               <Typography variant="caption" color={isDark ? '#a8b2d1' : '#666'} display="block">
                 Upload about image (optional)
               </Typography>
-              {existingAboutImage && !aboutImage && (
+              {existingAboutImage && !aboutImage && !removedAboutImage && (
                 <Typography variant="caption" sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
                   Current image loaded
                 </Typography>
@@ -671,6 +692,11 @@ export default function SettingsTab() {
               {aboutImage && (
                 <Typography variant="caption" sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
                   New image selected: {aboutImage.name}
+                </Typography>
+              )}
+              {removedAboutImage && (
+                <Typography variant="caption" sx={{ color: isDark ? '#ff0000' : '#dc3545' }}>
+                  Image will be removed
                 </Typography>
               )}
             </Box>
