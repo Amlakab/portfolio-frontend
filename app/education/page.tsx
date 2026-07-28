@@ -754,7 +754,7 @@ const { names, subtitles } = getNamesAndSubtitles();
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: colors.primary }} />
-          <p style={{ color: colors.textPrimary }}>Loading portfolio...</p>
+          <p style={{ color: colors.textPrimary }}>Loading educations...</p>
         </div>
       </div>
     );
@@ -886,7 +886,7 @@ const { names, subtitles } = getNamesAndSubtitles();
       </section> */}
 
       {/* ===== EDUCATION ===== */}
-      {/* <section id="education" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(4), color: colors.textPrimary }}>
+      <section id="education" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(4), color: colors.textPrimary }}>
         <div className={styles.container}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
             <div style={{ textAlign: 'center', marginBottom: '60px' }}>
@@ -911,7 +911,7 @@ const { names, subtitles } = getNamesAndSubtitles();
             </div>
           </motion.div>
         </div>
-      </section> */}
+      </section>
 
       {/* ===== EXPERIENCE ===== */}
       {/* <section id="experience" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(3), color: colors.textPrimary }}>
