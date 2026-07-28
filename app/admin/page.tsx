@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Box, Tabs, Tab, Typography, useMediaQuery, Paper, Badge } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Box, Tabs, Tab, Typography, useMediaQuery, Paper } from '@mui/material';
 import { useTheme } from '@/lib/theme-context';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ProjectsTab from '@/components/admin/portfolio/ProjectsTab';
 import ExperiencesTab from '@/components/admin/portfolio/ExperiencesTab';
 import EducationsTab from '@/components/admin/portfolio/EducationsTab';
@@ -12,28 +13,53 @@ import SkillsTab from '@/components/admin/portfolio/SkillsTab';
 import SettingsTab from '@/components/admin/portfolio/SettingsTab';
 import { 
   Folder, Work, School, FormatQuote, Article, Code, Settings,
-  Dashboard, TrendingUp, People, Star, Description
+  Dashboard, TrendingUp, People, Star
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
 export default function PortfolioAdmin() {
   const { theme } = useTheme();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const isTablet = useMediaQuery('(max-width: 1024px)');
   const [activeTab, setActiveTab] = useState(0);
   const isDark = theme === 'dark';
 
+  const tabMap: { [key: string]: number } = {
+    'projects': 0,
+    'experiences': 1,
+    'educations': 2,
+    'testimonials': 3,
+    'blog': 4,
+    'skills': 5,
+    'settings': 6
+  };
+
+  const tabNames = ['projects', 'experiences', 'educations', 'testimonials', 'blog', 'skills', 'settings'];
+
   const tabs = [
-    { label: 'Projects', icon: <Folder />, component: <ProjectsTab />, count: 0 },
-    { label: 'Experiences', icon: <Work />, component: <ExperiencesTab />, count: 0 },
-    { label: 'Educations', icon: <School />, component: <EducationsTab />, count: 0 },
-    { label: 'Testimonials', icon: <FormatQuote />, component: <TestimonialsTab />, count: 0 },
-    { label: 'Blog', icon: <Article />, component: <BlogTab />, count: 0 },
-    { label: 'Skills', icon: <Code />, component: <SkillsTab />, count: 0 },
-    { label: 'Settings', icon: <Settings />, component: <SettingsTab />, count: 0 },
+    { label: 'Projects', icon: <Folder />, component: <ProjectsTab /> },
+    { label: 'Experiences', icon: <Work />, component: <ExperiencesTab /> },
+    { label: 'Educations', icon: <School />, component: <EducationsTab /> },
+    { label: 'Testimonials', icon: <FormatQuote />, component: <TestimonialsTab /> },
+    { label: 'Blog', icon: <Article />, component: <BlogTab /> },
+    { label: 'Skills', icon: <Code />, component: <SkillsTab /> },
+    { label: 'Settings', icon: <Settings />, component: <SettingsTab /> },
   ];
 
-  // Get tab icon color
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && tabMap[tabParam] !== undefined) {
+      setActiveTab(tabMap[tabParam]);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+    const tabName = tabNames[newValue];
+    router.push(`/admin?tab=${tabName}`, { scroll: false });
+  };
+
   const getIconColor = (index: number) => {
     return activeTab === index ? (isDark ? '#00ffff' : '#007bff') : (isDark ? '#a8b2d1' : '#666666');
   };
@@ -61,7 +87,6 @@ export default function PortfolioAdmin() {
             : '0 4px 16px rgba(0,0,0,0.08)',
           transition: 'all 0.3s ease'
         }}>
-          {/* Header */}
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' },
@@ -84,41 +109,16 @@ export default function PortfolioAdmin() {
                 <Dashboard sx={{ color: isDark ? '#00ffff' : '#007bff' }} />
                 Portfolio Management
               </Typography>
-              <Typography variant="body2" color={isDark ? '#a8b2d1' : '#666666'} sx={{ mt: 0.5 }}>
-                Manage your portfolio content, projects, and site settings
-              </Typography>
-            </Box>
-            
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 2,
-              flexWrap: 'wrap'
-            }}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                px: 2,
-                py: 1,
-                borderRadius: 1,
-                backgroundColor: isDark ? '#1e293b' : '#f8fafc'
-              }}>
-                <TrendingUp sx={{ fontSize: 16, color: isDark ? '#00ffff' : '#007bff' }} />
-                <Typography variant="caption" color={isDark ? '#a8b2d1' : '#666666'}>
-                  {tabs.length} Sections
-                </Typography>
-              </Box>
             </Box>
           </Box>
 
-          {/* Tabs */}
           <Box sx={{ 
             borderBottom: isDark ? '1px solid #334155' : '1px solid #e5e7eb',
             mb: 3
           }}>
             <Tabs 
               value={activeTab} 
-              onChange={(_, v) => setActiveTab(v)} 
+              onChange={handleTabChange} 
               variant={isMobile ? 'scrollable' : 'fullWidth'} 
               scrollButtons={isMobile ? 'auto' : false}
               allowScrollButtonsMobile
@@ -189,7 +189,6 @@ export default function PortfolioAdmin() {
             </Tabs>
           </Box>
 
-          {/* Content */}
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, x: 20 }}
@@ -201,7 +200,6 @@ export default function PortfolioAdmin() {
             </Box>
           </motion.div>
 
-          {/* Footer Stats */}
           <Box sx={{ 
             mt: 4,
             pt: 3,
