@@ -13,8 +13,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
   Eye, EyeOff, Phone, Lock, 
-  Utensils, Clock, Truck, 
-  ShoppingBag, Shield, Bell
+  Code, Briefcase, Users, 
+  Award, Shield, Bell, 
+  FolderGit2
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -104,19 +105,19 @@ export default function LoginPage() {
   };
 
   const features = [
-    { icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Fast Service", description: "Quick order processing" },
-    { icon: <Truck className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Delivery", description: "Campus-wide delivery" },
-    { icon: <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Online Orders", description: "Order ahead online" },
-    { icon: <Shield className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Secure", description: "Safe & secure payments" },
+    { icon: <Code className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Web Development", description: "Full-stack solutions" },
+    { icon: <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Portfolio Projects", description: "Showcase your work" },
+    { icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Collaboration", description: "Team projects" },
+    { icon: <Award className="w-4 h-4 sm:w-5 sm:h-5" />, title: "Quality Code", description: "Clean & scalable" },
   ];
 
-  const categories = [
-    { emoji: "☕", name: "Coffee" },
-    { emoji: "🍕", name: "Pizza" },
-    { emoji: "🍔", name: "Burgers" },
-    { emoji: "🍜", name: "Noodles" },
-    { emoji: "🥗", name: "Salads" },
-    { emoji: "🍰", name: "Desserts" },
+  const skills = [
+    { emoji: "💻", name: "Frontend" },
+    { emoji: "⚙️", name: "Backend" },
+    { emoji: "📱", name: "Mobile" },
+    { emoji: "☁️", name: "Cloud" },
+    { emoji: "🔧", name: "DevOps" },
+    { emoji: "🎨", name: "UI/UX" },
   ];
 
   return (
@@ -140,12 +141,12 @@ export default function LoginPage() {
                 isDarkMode ? 'text-[#00ffff]' : 'text-[#007bff]'
               }`}
             >
-              Campus Café
+              Amlakie's Portfolio
             </motion.h1>
             <p className={`text-sm sm:text-base md:text-lg ${
               isDarkMode ? 'text-[#a8b2d1]' : 'text-[#666666]'
             } max-w-2xl mx-auto px-4`}>
-              Login to order food, track deliveries, and manage your account
+              Login to manage your portfolio, projects, and professional profile
             </p>
           </div>
 
@@ -165,7 +166,7 @@ export default function LoginPage() {
                 <div className={`p-2 sm:p-3 rounded-xl ${
                   isDarkMode ? 'bg-[#00ffff20]' : 'bg-[#007bff10]'
                 }`}>
-                  <Utensils className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                  <FolderGit2 className={`w-5 h-5 sm:w-6 sm:h-6 ${
                     isDarkMode ? 'text-[#00ffff]' : 'text-[#007bff]'
                   }`} />
                 </div>
@@ -179,7 +180,7 @@ export default function LoginPage() {
               <p className={`text-xs sm:text-sm mb-4 sm:mb-6 ${
                 isDarkMode ? 'text-[#a8b2d1]' : 'text-[#666666]'
               }`}>
-                Sign in to order food, check your meal plan, or manage your account.
+                Sign in to manage your portfolio, update projects, and showcase your work.
               </p>
 
               {message && (
@@ -361,7 +362,7 @@ export default function LoginPage() {
                 <p className={`text-center text-xs sm:text-sm ${
                   isDarkMode ? 'text-[#a8b2d1]' : 'text-[#666666]'
                 }`}>
-                  New to Campus Café?{' '}
+                  New to Amlakie's Portfolio?{' '}
                   <Link
                     href="/auth/register"
                     className={`font-semibold ${
@@ -381,7 +382,7 @@ export default function LoginPage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="space-y-4 sm:space-y-6"
             >
-              {/* Quick Categories */}
+              {/* Skills Categories */}
               <div className={`rounded-2xl shadow-xl p-4 sm:p-6 border ${
                 isDarkMode 
                   ? 'bg-[#0f172a80] border-[#334155] backdrop-blur-[10px]' 
@@ -390,10 +391,10 @@ export default function LoginPage() {
                 <h3 className={`text-base sm:text-lg font-bold mb-3 sm:mb-4 ${
                   isDarkMode ? 'text-[#00ffff]' : 'text-[#007bff]'
                 }`}>
-                  Popular Categories
+                  Tech Stack
                 </h3>
                 <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  {categories.map((cat, index) => (
+                  {skills.map((skill, index) => (
                     <motion.div
                       key={index}
                       whileHover={{ scale: 1.05 }}
@@ -403,11 +404,11 @@ export default function LoginPage() {
                           : 'bg-[#f8fafc] hover:bg-[#e5e7eb]'
                       } transition-colors duration-300`}
                     >
-                      <div className="text-2xl sm:text-3xl md:text-4xl mb-1">{cat.emoji}</div>
+                      <div className="text-2xl sm:text-3xl md:text-4xl mb-1">{skill.emoji}</div>
                       <div className={`text-xs sm:text-sm font-medium ${
                         isDarkMode ? 'text-[#ccd6f6]' : 'text-[#333333]'
                       }`}>
-                        {cat.name}
+                        {skill.name}
                       </div>
                     </motion.div>
                   ))}
@@ -423,7 +424,7 @@ export default function LoginPage() {
                 <h3 className={`text-base sm:text-lg font-bold mb-3 sm:mb-4 ${
                   isDarkMode ? 'text-[#00ffff]' : 'text-[#007bff]'
                 }`}>
-                  Why Campus Café?
+                  Why Amlakie's Portfolio?
                 </h3>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {features.map((feature, index) => (
@@ -463,7 +464,7 @@ export default function LoginPage() {
               }`}>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <Link
-                    href="/menu"
+                    href="/portfolio"
                     className={`p-3 sm:p-4 rounded-xl text-center transition-all duration-300 ${
                       isDarkMode
                         ? 'bg-[#00ffff10] hover:bg-[#00ffff20] border border-[#00ffff30]'
@@ -473,12 +474,12 @@ export default function LoginPage() {
                     <div className={`font-semibold text-sm sm:text-base ${
                       isDarkMode ? 'text-[#00ffff]' : 'text-[#007bff]'
                     }`}>
-                      View Menu
+                      Portfolio
                     </div>
                     <div className={`text-[10px] sm:text-xs mt-1 ${
                       isDarkMode ? 'text-[#94a3b8]' : 'text-[#999999]'
                     }`}>
-                      Browse delicious options
+                      View my work
                     </div>
                   </Link>
                   <Link
@@ -492,12 +493,12 @@ export default function LoginPage() {
                     <div className={`font-semibold text-sm sm:text-base ${
                       isDarkMode ? 'text-[#ccd6f6]' : 'text-[#333333]'
                     }`}>
-                      About Us
+                      About Me
                     </div>
                     <div className={`text-[10px] sm:text-xs mt-1 ${
                       isDarkMode ? 'text-[#94a3b8]' : 'text-[#999999]'
                     }`}>
-                      Our story & values
+                      My story & skills
                     </div>
                   </Link>
                 </div>
