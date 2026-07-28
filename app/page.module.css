@@ -461,59 +461,89 @@
   }
 }
 
-/* ===== Testimonials ===== */
+/* Testimonials */
 .testimonialSlider {
   position: relative;
-  padding: 20px 0;
+  padding: 20px 10px;
   display: flex;
   gap: 30px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+
 .testimonialSlider::-webkit-scrollbar {
   display: none;
 }
+
 .testimonialCard {
   border-radius: 20px;
-  padding: 40px;
+  padding: clamp(20px, 4vw, 40px);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
   min-width: 80%;
+  max-width: 80%;
   scroll-snap-align: start;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  border: 1px solid transparent;
 }
-.testimonialHeader {
-  display: flex;
-  align-items: center;
-  margin-bottom: 25px;
+
+@media (max-width: 768px) {
+  .testimonialCard {
+    min-width: 85%;
+    max-width: 85%;
+    padding: 20px;
+  }
+  
+  .testimonialAvatar {
+    width: 60px !important;
+    height: 60px !important;
+    margin-right: 15px !important;
+  }
+  
+  .testimonialAuthor h4 {
+    font-size: 1.1rem !important;
+  }
+  
+  .testimonialAuthor p {
+    font-size: 0.85rem !important;
+  }
+  
+  .testimonialContent p {
+    font-size: 0.95rem !important;
+  }
 }
-.testimonialAvatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-right: 25px;
-  border: 3px solid var(--primary-color, #2563eb);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-.testimonialAuthor h4 {
-  font-size: 1.4rem;
-  margin-bottom: 5px;
-}
-.testimonialAuthor p {
-  font-size: 1rem;
-  margin-bottom: 10px;
-}
-.testimonialRating {
-  font-size: 1.1rem;
-}
-.testimonialContent p {
-  font-style: italic;
-  line-height: 1.8;
-  position: relative;
-  padding-left: 30px;
-  font-size: 1.1rem;
+
+@media (max-width: 480px) {
+  .testimonialSlider {
+    gap: 15px;
+  }
+  
+  .testimonialCard {
+    min-width: 90%;
+    max-width: 90%;
+    padding: 15px;
+  }
+  
+  .testimonialHeader {
+    flex-direction: column;
+    align-items: center !important;
+    text-align: center;
+  }
+  
+  .testimonialAuthor {
+    text-align: center;
+  }
+  
+  .testimonialContent p {
+    padding-left: 20px;
+    font-size: 0.9rem !important;
+  }
+  
+  .testimonialContent p span {
+    font-size: 2rem !important;
+  }
 }
 
 /* ===== Blog ===== */

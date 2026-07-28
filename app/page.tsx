@@ -24,6 +24,7 @@ import styles from './page.module.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Navbar from '@/components/ui/Navbar';
 import toast, { Toaster } from 'react-hot-toast';
+import { useMediaQuery } from '@mui/material';
 
 // ===== Types =====
 interface Project {
@@ -416,6 +417,7 @@ const Portfolio = () => {
   const [backendSkills, setBackendSkills] = useState<Skill[]>(DEFAULT_SKILLS.filter(s => s.category === 'backend'));
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Add these state variables inside your Portfolio component (after the existing state declarations)
   
@@ -1329,52 +1331,259 @@ const { names, subtitles } = getNamesAndSubtitles();
 </section>
 
       {/* ===== TESTIMONIALS ===== */}
-      <section id="testimonials" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(6), color: colors.textPrimary }}>
-        <div className={styles.container}>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
-                <MdRecordVoiceOver color={colors.primary} /> Client Testimonials
-                <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
-              </h2>
-            </div>
-            <div className={styles.testimonialSlider} style={{ position: 'relative', padding: '20px 0', display: 'flex', gap: '30px', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}>
-              {testimonials.length > 0 ? testimonials.map((testimonial) => (
-                <motion.div key={testimonial._id} className={styles.testimonialCard} whileHover={{ scale: 1.02, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.1)' }} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', borderRadius: '20px', padding: '40px', boxShadow: '0 15px 40px rgba(0, 0, 0, 0.05)', minWidth: '80%', scrollSnapAlign: 'start' }}>
-                  <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '25px' }}>
-                    <div className={styles.testimonialAvatar} style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginRight: '25px', border: `3px solid ${colors.primary}`, boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)', position: 'relative' }}>
-                      <img 
-                        src={getImageUrl(testimonial) || '/images/placeholder.jpg'} 
-                        alt={testimonial.name} 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                          console.error('Failed to load testimonial avatar:', testimonial.name);
-                          (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                        }}
-                      />
-                    </div>
-                    <div className={styles.testimonialAuthor}>
-                      <h4 style={{ fontSize: '1.4rem', marginBottom: '5px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>{testimonial.name}</h4>
-                      <p style={{ fontSize: '1rem', color: colors.textPrimary, marginBottom: '10px', opacity: 0.8 }}>{testimonial.role}</p>
-                      <div className={styles.testimonialRating} style={{ color: '#ffc107', fontSize: '1.1rem' }}>
-                        {[...Array(testimonial.rating)].map((_, i) => <span key={i}>★</span>)}
-                      </div>
-                    </div>
+<section id="testimonials" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(6), color: colors.textPrimary }}>
+  <div className={styles.container}>
+    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
+      <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+        <h2 className={styles.sectionTitle} style={{ fontSize: 'clamp(2rem, 5vw, 2.8rem)', fontWeight: 700, color: colors.textPrimary, fontFamily: "'Poppins', sans-serif", position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '15px' }}>
+          <MdRecordVoiceOver color={colors.primary} /> Client Testimonials
+          <motion.div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '80px', height: '4px', background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`, borderRadius: '2px' }} layoutId="sectionDivider" />
+        </h2>
+      </div>
+      
+      <div style={{ position: 'relative' }}>
+        {/* Navigation Arrows */}
+        <button
+          onClick={() => {
+            const slider = document.getElementById('testimonialSlider');
+            if (slider) {
+              slider.scrollBy({ left: -slider.clientWidth * 0.8, behavior: 'smooth' });
+            }
+          }}
+          style={{
+            position: 'absolute',
+            left: '-20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: `2px solid ${colors.primary}`,
+            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            color: colors.primary,
+            fontSize: '1.5rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = colors.primary;
+            e.currentTarget.style.color = '#fff';
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+            e.currentTarget.style.color = colors.primary;
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+          }}
+          aria-label="Previous testimonial"
+        >
+          ❮
+        </button>
+
+        <button
+          onClick={() => {
+            const slider = document.getElementById('testimonialSlider');
+            if (slider) {
+              slider.scrollBy({ left: slider.clientWidth * 0.8, behavior: 'smooth' });
+            }
+          }}
+          style={{
+            position: 'absolute',
+            right: '-20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            width: '50px',
+            height: '50px',
+            borderRadius: '50%',
+            border: `2px solid ${colors.primary}`,
+            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            color: colors.primary,
+            fontSize: '1.5rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            backdropFilter: 'blur(10px)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = colors.primary;
+            e.currentTarget.style.color = '#fff';
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+            e.currentTarget.style.color = colors.primary;
+            e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+          }}
+          aria-label="Next testimonial"
+        >
+          ❯
+        </button>
+
+        {/* Testimonial Slider */}
+        <div 
+          id="testimonialSlider"
+          className={styles.testimonialSlider} 
+          style={{ 
+            position: 'relative', 
+            padding: '20px 10px', 
+            display: 'flex', 
+            gap: '30px', 
+            overflowX: 'auto', 
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {testimonials.length > 0 ? testimonials.map((testimonial) => (
+            <motion.div 
+              key={testimonial._id} 
+              className={styles.testimonialCard} 
+              whileHover={{ scale: 1.02, boxShadow: `0 15px 30px ${colors.shadow}` }} 
+              style={{ 
+                backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
+                borderRadius: '20px', 
+                padding: 'clamp(20px, 4vw, 40px)', 
+                boxShadow: `0 15px 40px ${colors.shadow}`, 
+                minWidth: isMobile ? '85%' : '80%',
+                maxWidth: isMobile ? '85%' : '80%',
+                scrollSnapAlign: 'start',
+                flexShrink: 0,
+                transition: 'all 0.3s ease',
+                border: `1px solid ${colors.border}`,
+              }}
+            >
+              <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
+                <div className={styles.testimonialAvatar} style={{ 
+                  width: isMobile ? '60px' : '80px', 
+                  height: isMobile ? '60px' : '80px', 
+                  borderRadius: '50%', 
+                  overflow: 'hidden', 
+                  marginRight: isMobile ? '15px' : '25px', 
+                  border: `3px solid ${colors.primary}`, 
+                  boxShadow: `0 5px 15px ${colors.shadow}`, 
+                  position: 'relative',
+                  flexShrink: 0,
+                }}>
+                  <img 
+                    src={getImageUrl(testimonial) || '/images/placeholder.jpg'} 
+                    alt={testimonial.name} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      console.error('Failed to load testimonial avatar:', testimonial.name);
+                      (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                    }}
+                  />
+                </div>
+                <div className={styles.testimonialAuthor} style={{ flex: 1, minWidth: '150px' }}>
+                  <h4 style={{ 
+                    fontSize: isMobile ? '1.1rem' : '1.4rem', 
+                    marginBottom: '5px', 
+                    color: colors.textPrimary, 
+                    fontFamily: "'Poppins', sans-serif" 
+                  }}>
+                    {testimonial.name}
+                  </h4>
+                  <p style={{ 
+                    fontSize: isMobile ? '0.85rem' : '1rem', 
+                    color: colors.textSecondary, 
+                    marginBottom: '10px', 
+                    opacity: 0.8 
+                  }}>
+                    {testimonial.role}
+                  </p>
+                  <div className={styles.testimonialRating} style={{ color: '#ffc107', fontSize: isMobile ? '0.9rem' : '1.1rem' }}>
+                    {[...Array(testimonial.rating)].map((_, i) => <span key={i}>★</span>)}
                   </div>
-                  <div className={styles.testimonialContent}>
-                    <p style={{ fontStyle: 'italic', lineHeight: 1.8, position: 'relative', paddingLeft: '30px', fontSize: '1.1rem', color: colors.textPrimary }}>
-                      <span style={{ position: 'absolute', left: 0, top: 0, fontSize: '3rem', lineHeight: 1, color: colors.primary, opacity: 0.2 }}>"</span>
-                      {testimonial.content}
-                    </p>
-                  </div>
-                </motion.div>
-              )) : (
-                <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No testimonials data available</p>
-              )}
-            </div>
-          </motion.div>
+                </div>
+              </div>
+              <div className={styles.testimonialContent}>
+                <p style={{ 
+                  fontStyle: 'italic', 
+                  lineHeight: 1.8, 
+                  position: 'relative', 
+                  paddingLeft: '30px', 
+                  fontSize: isMobile ? '0.95rem' : '1.1rem', 
+                  color: colors.textPrimary 
+                }}>
+                  <span style={{ 
+                    position: 'absolute', 
+                    left: 0, 
+                    top: 0, 
+                    fontSize: '3rem', 
+                    lineHeight: 1, 
+                    color: colors.primary, 
+                    opacity: 0.2 
+                  }}>
+                    "
+                  </span>
+                  {testimonial.content}
+                </p>
+              </div>
+            </motion.div>
+          )) : (
+            <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>
+              No testimonials data available
+            </p>
+          )}
         </div>
-      </section>
+
+        {/* Dots Indicator */}
+        {testimonials.length > 0 && (
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '10px', 
+            marginTop: '30px',
+            flexWrap: 'wrap',
+          }}>
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  const slider = document.getElementById('testimonialSlider');
+                  if (slider) {
+                    const cardWidth = slider.clientWidth * 0.8;
+                    slider.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+                  }
+                }}
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  border: `2px solid ${colors.primary}`,
+                  backgroundColor: 'transparent',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  padding: 0,
+                  outline: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.primary;
+                  e.currentTarget.style.transform = 'scale(1.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                aria-label={`Go to testimonial ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  </div>
+</section>
 
       {/* ===== BLOG ===== */}
       <section id="blog" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(7), color: colors.textPrimary }}>
