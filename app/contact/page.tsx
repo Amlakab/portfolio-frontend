@@ -1016,20 +1016,30 @@ const { names, subtitles } = getNamesAndSubtitles();
                   </div>
                 </div>
                 <div className={styles.formGroup}>
-                  <select 
+                  <select
                     name="subject" 
                     required 
                     value={formData.subject}
                     onChange={handleFormChange}
-                    style={{ width: '100%', padding: '15px 20px', border: `1px solid ${colors.primary}`, borderRadius: '10px', fontFamily: 'inherit', fontSize: '1rem', backgroundColor: 'transparent', color: colors.textPrimary }}
+                    style={{ 
+                      width: '100%', 
+                      padding: '15px 20px', 
+                      border: `1px solid ${colors.primary}`, 
+                      borderRadius: '10px', 
+                      fontFamily: 'inherit', 
+                      fontSize: '1rem', 
+                      backgroundColor: 'transparent', 
+                      color: colors.textPrimary 
+                    }}
                   >
-                    <option value="">Select Subject</option>
-                    <option value="technical-support">Technical Support</option>
-                    <option value="account-issues">Account Issues</option>
-                    <option value="payment-issues">Payment Issues</option>
-                    <option value="game-suggestions">Game Suggestions</option>
-                    <option value="partnership">Partnership Opportunities</option>
-                    <option value="other">Other</option>
+                    <option value="" style={{ color: '#333' }}>Select Subject</option>
+                    <option value="project-inquiry" style={{ color: '#333' }}>New Project Inquiry</option>
+                    <option value="freelance-hire" style={{ color: '#333' }}>Freelance / Contract Hire</option>
+                    <option value="job-opportunity" style={{ color: '#333' }}>Full-time Job Opportunity</option>
+                    <option value="quote-request" style={{ color: '#333' }}>Request a Project Quote</option>
+                    <option value="collaboration" style={{ color: '#333' }}>Partnership / Collaboration</option>
+                    <option value="consultation" style={{ color: '#333' }}>Technical Consultation</option>
+                    <option value="general-feedback" style={{ color: '#333' }}>General Inquiry / Feedback</option>
                   </select>
                 </div>
                 <div className={styles.formGroup}>
