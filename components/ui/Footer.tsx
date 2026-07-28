@@ -764,7 +764,7 @@ const { names, subtitles } = getNamesAndSubtitles();
                 <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
                   {['Home', 'About', 'Skills', 'Education', 'Work', 'Experience'].map((item) => (
                     <li key={item} style={{ marginBottom: '10px' }}>
-                      <a href={`#${item.toLowerCase()}`} style={{ textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }} onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
+                      <a href={`/${item.toLowerCase()}`} style={{ textDecoration: 'none', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }} onMouseOver={(e) => (e.currentTarget.style.color = colors.primary)} onMouseOut={(e) => (e.currentTarget.style.color = '#fff')}>
                         <FaChevronCircleRight /> {item}
                       </a>
                     </li>
