@@ -70,15 +70,15 @@ const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-  { href: '#home', label: 'Home', icon: <FaHome /> },
-  { href: '#about', label: 'About', icon: <FaUser /> },
-  { href: '#education', label: 'Education', icon: <FaGraduationCap /> },
-  { href: '#experience', label: 'Experience', icon: <FaBriefcase /> },
-  { href: '#skills', label: 'Skills', icon: <FaTools /> },
-  { href: '#work', label: 'Work', icon: <FaFolderOpen /> },
-  { href: '#testimonials', label: 'Testimonials', icon: <FaQuoteRight /> },
-  { href: '#blog', label: 'Blog', icon: <FaNewspaper /> },
-  { href: '#contact', label: 'Contact', icon: <FaEnvelope /> },
+  { href: '/', label: 'Home', icon: <FaHome /> },
+  { href: '/about', label: 'About', icon: <FaUser /> },
+  { href: '/education', label: 'Education', icon: <FaGraduationCap /> },
+  { href: '/experience', label: 'Experience', icon: <FaBriefcase /> },
+  { href: '/skills', label: 'Skills', icon: <FaTools /> },
+  { href: '/work', label: 'Work', icon: <FaFolderOpen /> },
+  { href: '/testimonials', label: 'Testimonials', icon: <FaQuoteRight /> },
+  { href: '/blog', label: 'Blog', icon: <FaNewspaper /> },
+  { href: '/contact', label: 'Contact', icon: <FaEnvelope /> },
 ];
 
   const isActive = (href: string) => pathname === href;
@@ -478,7 +478,7 @@ const Navbar: React.FC = () => {
             </div> */}
 
             {/* Language Selector Mobile */}
-            <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
+            {/* <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
               <p className={`text-xs font-medium uppercase px-4 mb-2 ${
                 isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'
               }`}>
@@ -498,7 +498,7 @@ const Navbar: React.FC = () => {
               }`}>
                 <FaGlobe className="mr-3" /> Amharic
               </button>
-            </div>
+            </div> */}
           </div>
         )}
       </div>
