@@ -806,9 +806,16 @@ const { names, subtitles } = getNamesAndSubtitles();
 {/* ===== HERO ===== */}
 <section id="home" className={styles.heroSection} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', backgroundColor: getSectionBackground(0), color: colors.textPrimary, padding: '100px 0' }}>
   <div className={styles.container}>
-    <div className={styles.heroGrid}>
-      {/* Image - Will be first on mobile due to order: -1 */}
-      <div className={styles.heroImage}>
+    <div className={styles.heroGrid} style={{ 
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '60px',
+      alignItems: 'center'
+    }}>
+      {/* Image - Will be first on mobile */}
+      <div className={styles.heroImage} style={{ 
+        order: 0 
+      }}>
         <motion.div initial={{ opacity: 0, x: 100, rotate: 5 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={styles.heroImageContainer} style={{ position: 'relative', display: 'flex', justifyContent: 'center', perspective: '1000px' }}>
           <AnimatePresence mode="wait">
             <motion.div key={profileIndex} className={styles.heroImageWrapper} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.6 }} style={{ position: 'relative', width: '100%', maxWidth: '380px', height: '380px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)', transformStyle: 'preserve-3d' }}>
@@ -827,8 +834,10 @@ const { names, subtitles } = getNamesAndSubtitles();
         </motion.div>
       </div>
       
-      {/* Content - Will be second on mobile due to order: 0 */}
-      <div className={styles.heroContent}>
+      {/* Content - Will be second on mobile */}
+      <div className={styles.heroContent} style={{ 
+        order: 1 
+      }}>
         <motion.div initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
           <h1 className={styles.heroTitle} style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '20px', lineHeight: 1.2, fontFamily: "'Poppins', sans-serif", color: colors.textPrimary }}>
             Hi, I'm <span style={{ color: colors.primary }}>{names[nameIndex]}</span>
@@ -851,6 +860,24 @@ const { names, subtitles } = getNamesAndSubtitles();
       </div>
     </div>
   </div>
+
+  {/* Internal CSS for responsive order */}
+  <style jsx>{`
+    @media (max-width: 992px) {
+      .heroGrid {
+        grid-template-columns: 1fr !important;
+        gap: 40px !important;
+      }
+      
+      .heroImage {
+        order: -1 !important;
+      }
+      
+      .heroContent {
+        order: 0 !important;
+      }
+    }
+  `}</style>
 </section>
 
       {/* ===== ABOUT ===== */}
