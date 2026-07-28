@@ -1,3 +1,4 @@
+// components/ui/Navbar.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
-import { useTheme } from '@/lib/theme-context';
+import { useTheme } from '@/app/context/ThemeContext';
 import {
   FaSun,
   FaMoon,
@@ -26,7 +27,7 @@ import {
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -73,7 +74,11 @@ const Navbar: React.FC = () => {
   if (!mounted) return null;
 
   return (
-    <nav className="fixed w-full z-50 bg-white dark:bg-[#0f172a] border-b border-gray-200 dark:border-[#334155] shadow-sm transition-colors duration-300">
+    <nav className={`fixed w-full z-50 border-b shadow-sm transition-colors duration-300 ${
+      isDarkMode 
+        ? 'bg-[#0a192f] border-[#334155]' 
+        : 'bg-white border-gray-200'
+    }`}>
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16 md:h-20">
           
@@ -89,7 +94,11 @@ const Navbar: React.FC = () => {
                 priority
               />
             </div>
-            <span className="text-lg md:text-xl font-bold text-gray-800 dark:text-[#ccd6f6] transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-[#00ffff]">
+            <span className={`text-lg md:text-xl font-bold transition-colors duration-300 ${
+              isDarkMode 
+                ? 'text-[#ccd6f6] group-hover:text-[#00ffff]' 
+                : 'text-gray-800 group-hover:text-blue-600'
+            }`}>
               Zelalem Cafterya
             </span>
           </Link>
@@ -102,8 +111,8 @@ const Navbar: React.FC = () => {
                 href={link.href}
                 className={`relative px-3 py-2 text-sm font-medium transition-all duration-300
                   ${isActive(link.href) 
-                    ? 'text-blue-600 dark:text-[#00ffff]' 
-                    : 'text-gray-700 dark:text-[#a8b2d1] hover:text-blue-600 dark:hover:text-[#00ffff]'
+                    ? isDarkMode ? 'text-[#00ffff]' : 'text-blue-600'
+                    : isDarkMode ? 'text-[#a8b2d1] hover:text-[#00ffff]' : 'text-gray-700 hover:text-blue-600'
                   }
                   after:absolute after:bottom-0 after:left-0 after:h-0.5 
                   after:bg-blue-600 dark:after:bg-[#00ffff] after:transition-transform after:duration-300
@@ -120,42 +129,68 @@ const Navbar: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={toggleUserMenu}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                      isDarkMode 
+                        ? 'hover:bg-[#1e293b]' 
+                        : 'hover:bg-gray-100'
+                    }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-blue-600 dark:bg-[#00ffff] flex items-center justify-center text-white dark:text-[#0a192f] font-bold text-sm">
                       {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                     </div>
-                    <span className="text-sm text-gray-700 dark:text-[#a8b2d1] hidden xl:block">
+                    <span className={`text-sm ${isDarkMode ? 'text-[#a8b2d1]' : 'text-gray-700'} hidden xl:block`}>
                       {user.name || user.email}
                     </span>
-                    <FaChevronDown className={`text-gray-400 dark:text-[#94a3b8] text-xs transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                    <FaChevronDown className={`${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'} text-xs transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-lg shadow-lg py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-200 dark:border-[#334155]">
-                        <p className="text-sm font-medium text-gray-800 dark:text-[#ccd6f6]">{user.name || user.email}</p>
-                        <p className="text-xs text-gray-500 dark:text-[#94a3b8]">{user.email}</p>
+                    <div className={`absolute right-0 mt-2 w-56 rounded-lg shadow-lg py-2 z-50 border ${
+                      isDarkMode 
+                        ? 'bg-[#0f172a] border-[#334155]' 
+                        : 'bg-white border-gray-200'
+                    }`}>
+                      <div className={`px-4 py-2 border-b ${
+                        isDarkMode ? 'border-[#334155]' : 'border-gray-200'
+                      }`}>
+                        <p className={`text-sm font-medium ${isDarkMode ? 'text-[#ccd6f6]' : 'text-gray-800'}`}>
+                          {user.name || user.email}
+                        </p>
+                        <p className={`text-xs ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
+                          {user.email}
+                        </p>
                       </div>
                       {user.role === 'admin' && (
                         <Link
                           href="/admin"
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200"
+                          className={`flex items-center px-4 py-2 text-sm transition-colors duration-200 ${
+                            isDarkMode 
+                              ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <FaCog className="mr-2" /> Admin Dashboard
                         </Link>
                       )}
                       <Link
-                        href="/admin"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200"
+                        href="/dashboard"
+                        className={`flex items-center px-4 py-2 text-sm transition-colors duration-200 ${
+                          isDarkMode 
+                            ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <FaUser className="mr-2" /> Dashboard
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200 border-t border-gray-200 dark:border-[#334155]"
+                        className={`flex items-center w-full px-4 py-2 text-sm border-t transition-colors duration-200 ${
+                          isDarkMode 
+                            ? 'text-red-400 hover:bg-[#1e293b] border-[#334155]' 
+                            : 'text-red-600 hover:bg-gray-100 border-gray-200'
+                        }`}
                       >
                         <FaSignOutAlt className="mr-2" /> Logout
                       </button>
@@ -167,19 +202,35 @@ const Navbar: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={toggleLanguage}
-                    className="flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all duration-300 ${
+                      isDarkMode 
+                        ? 'hover:bg-[#1e293b]' 
+                        : 'hover:bg-gray-100'
+                    }`}
                   >
-                    <FaGlobe className="text-gray-600 dark:text-[#a8b2d1]" />
-                    <span className="text-sm text-gray-700 dark:text-[#a8b2d1]">EN</span>
-                    <FaChevronDown className={`text-gray-400 dark:text-[#94a3b8] text-xs transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                    <FaGlobe className={isDarkMode ? 'text-[#a8b2d1]' : 'text-gray-600'} />
+                    <span className={`text-sm ${isDarkMode ? 'text-[#a8b2d1]' : 'text-gray-700'}`}>EN</span>
+                    <FaChevronDown className={`${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'} text-xs transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isLanguageOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-lg shadow-lg py-2 z-50">
-                      <button className="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200">
+                    <div className={`absolute right-0 mt-2 w-40 rounded-lg shadow-lg py-2 z-50 border ${
+                      isDarkMode 
+                        ? 'bg-[#0f172a] border-[#334155]' 
+                        : 'bg-white border-gray-200'
+                    }`}>
+                      <button className={`block w-full px-4 py-2 text-left text-sm transition-colors duration-200 ${
+                        isDarkMode 
+                          ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}>
                         English
                       </button>
-                      <button className="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200">
+                      <button className={`block w-full px-4 py-2 text-left text-sm transition-colors duration-200 ${
+                        isDarkMode 
+                          ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}>
                         Amharic
                       </button>
                     </div>
@@ -189,10 +240,14 @@ const Navbar: React.FC = () => {
                 {/* Theme Toggle */}
                 <button
                   onClick={toggleTheme}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+                  className={`p-2 rounded-lg transition-all duration-300 ${
+                    isDarkMode 
+                      ? 'hover:bg-[#1e293b]' 
+                      : 'hover:bg-gray-100'
+                  }`}
                   aria-label="Toggle theme"
                 >
-                  {theme === 'dark' ? (
+                  {isDarkMode ? (
                     <FaSun className="text-yellow-500" size={18} />
                   ) : (
                     <FaMoon className="text-gray-600" size={18} />
@@ -203,13 +258,21 @@ const Navbar: React.FC = () => {
               <div className="flex items-center ml-4 space-x-2">
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-[#00ffff] border border-blue-600 dark:border-[#00ffff] rounded-lg hover:bg-blue-600 dark:hover:bg-[#00ffff] hover:text-white dark:hover:text-[#0a192f] transition-all duration-300"
+                  className={`px-4 py-2 text-sm font-medium border rounded-lg transition-all duration-300 ${
+                    isDarkMode 
+                      ? 'text-[#00ffff] border-[#00ffff] hover:bg-[#00ffff] hover:text-[#0a192f]' 
+                      : 'text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white'
+                  }`}
                 >
                   <FaSignInAlt className="inline mr-1" /> Sign in
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-[#00ffff] dark:text-[#0a192f] rounded-lg hover:bg-blue-700 dark:hover:bg-[#00b3b3] transition-all duration-300"
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all duration-300 ${
+                    isDarkMode 
+                      ? 'bg-[#00ffff] text-[#0a192f] hover:bg-[#00b3b3]' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
                 >
                   <FaUserPlus className="inline mr-1" /> Sign up
                 </Link>
@@ -218,19 +281,35 @@ const Navbar: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={toggleLanguage}
-                    className="flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+                    className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all duration-300 ${
+                      isDarkMode 
+                        ? 'hover:bg-[#1e293b]' 
+                        : 'hover:bg-gray-100'
+                    }`}
                   >
-                    <FaGlobe className="text-gray-600 dark:text-[#a8b2d1]" />
-                    <span className="text-sm text-gray-700 dark:text-[#a8b2d1]">EN</span>
-                    <FaChevronDown className={`text-gray-400 dark:text-[#94a3b8] text-xs transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
+                    <FaGlobe className={isDarkMode ? 'text-[#a8b2d1]' : 'text-gray-600'} />
+                    <span className={`text-sm ${isDarkMode ? 'text-[#a8b2d1]' : 'text-gray-700'}`}>EN</span>
+                    <FaChevronDown className={`${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-400'} text-xs transition-transform duration-300 ${isLanguageOpen ? 'rotate-180' : ''}`} />
                   </button>
 
                   {isLanguageOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#334155] rounded-lg shadow-lg py-2 z-50">
-                      <button className="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200">
+                    <div className={`absolute right-0 mt-2 w-40 rounded-lg shadow-lg py-2 z-50 border ${
+                      isDarkMode 
+                        ? 'bg-[#0f172a] border-[#334155]' 
+                        : 'bg-white border-gray-200'
+                    }`}>
+                      <button className={`block w-full px-4 py-2 text-left text-sm transition-colors duration-200 ${
+                        isDarkMode 
+                          ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}>
                         English
                       </button>
-                      <button className="block w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors duration-200">
+                      <button className={`block w-full px-4 py-2 text-left text-sm transition-colors duration-200 ${
+                        isDarkMode 
+                          ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}>
                         Amharic
                       </button>
                     </div>
@@ -240,10 +319,14 @@ const Navbar: React.FC = () => {
                 {/* Theme Toggle */}
                 <button
                   onClick={toggleTheme}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+                  className={`p-2 rounded-lg transition-all duration-300 ${
+                    isDarkMode 
+                      ? 'hover:bg-[#1e293b]' 
+                      : 'hover:bg-gray-100'
+                  }`}
                   aria-label="Toggle theme"
                 >
-                  {theme === 'dark' ? (
+                  {isDarkMode ? (
                     <FaSun className="text-yellow-500" size={18} />
                   ) : (
                     <FaMoon className="text-gray-600" size={18} />
@@ -257,10 +340,14 @@ const Navbar: React.FC = () => {
           <div className="lg:hidden flex items-center space-x-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+              className={`p-2 rounded-lg transition-all duration-300 ${
+                isDarkMode 
+                  ? 'hover:bg-[#1e293b]' 
+                  : 'hover:bg-gray-100'
+              }`}
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? (
+              {isDarkMode ? (
                 <FaSun className="text-yellow-500" size={18} />
               ) : (
                 <FaMoon className="text-gray-600" size={18} />
@@ -268,7 +355,11 @@ const Navbar: React.FC = () => {
             </button>
             <button
               onClick={toggleMenu}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-all duration-300"
+              className={`p-2 rounded-lg transition-all duration-300 ${
+                isDarkMode 
+                  ? 'hover:bg-[#1e293b]' 
+                  : 'hover:bg-gray-100'
+              }`}
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
@@ -278,7 +369,9 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-gray-200 dark:border-[#334155] animate-slideDown">
+          <div className={`lg:hidden py-4 border-t animate-slideDown ${
+            isDarkMode ? 'border-[#334155]' : 'border-gray-200'
+          }`}>
             {/* Navigation Links */}
             <div className="space-y-1">
               {navLinks.map((link) => (
@@ -287,8 +380,8 @@ const Navbar: React.FC = () => {
                   href={link.href}
                   className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200
                     ${isActive(link.href) 
-                      ? 'text-blue-600 dark:text-[#00ffff] bg-blue-50 dark:bg-[#1e293b]' 
-                      : 'text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-50 dark:hover:bg-[#1e293b]'
+                      ? isDarkMode ? 'text-[#00ffff] bg-[#1e293b]' : 'text-blue-600 bg-blue-50'
+                      : isDarkMode ? 'text-[#a8b2d1] hover:bg-[#1e293b]' : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -298,32 +391,48 @@ const Navbar: React.FC = () => {
               ))}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#334155]">
+            <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
               {user ? (
                 <>
                   <div className="px-4 py-2 mb-2">
-                    <p className="text-sm font-medium text-gray-800 dark:text-[#ccd6f6]">{user.name || user.email}</p>
-                    <p className="text-xs text-gray-500 dark:text-[#94a3b8]">{user.email}</p>
+                    <p className={`text-sm font-medium ${isDarkMode ? 'text-[#ccd6f6]' : 'text-gray-800'}`}>
+                      {user.name || user.email}
+                    </p>
+                    <p className={`text-xs ${isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'}`}>
+                      {user.email}
+                    </p>
                   </div>
                   {user.role === 'admin' && (
                     <Link
                       href="/admin"
-                      className="flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors duration-200"
+                      className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                        isDarkMode 
+                          ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <FaCog className="mr-3" /> Admin Dashboard
                     </Link>
                   )}
                   <Link
-                    href="/admin"
-                    className="flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors duration-200"
+                    href="/dashboard"
+                    className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                      isDarkMode 
+                        ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <FaUser className="mr-3" /> Dashboard
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-3 rounded-lg text-base font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors duration-200"
+                    className={`flex items-center w-full px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                      isDarkMode 
+                        ? 'text-red-400 hover:bg-[#1e293b]' 
+                        : 'text-red-600 hover:bg-gray-50'
+                    }`}
                   >
                     <FaSignOutAlt className="mr-3" /> Logout
                   </button>
@@ -332,14 +441,22 @@ const Navbar: React.FC = () => {
                 <div className="space-y-2">
                   <Link
                     href="/auth/login"
-                    className="flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-blue-600 dark:text-[#00ffff] border border-blue-600 dark:border-[#00ffff] hover:bg-blue-600 dark:hover:bg-[#00ffff] hover:text-white dark:hover:text-[#0a192f] transition-all duration-200"
+                    className={`flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium border transition-all duration-200 ${
+                      isDarkMode 
+                        ? 'text-[#00ffff] border-[#00ffff] hover:bg-[#00ffff] hover:text-[#0a192f]' 
+                        : 'text-blue-600 border-blue-600 hover:bg-blue-600 hover:text-white'
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <FaSignInAlt className="mr-2" /> Sign in
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-white bg-blue-600 dark:bg-[#00ffff] dark:text-[#0a192f] hover:bg-blue-700 dark:hover:bg-[#00b3b3] transition-all duration-200"
+                    className={`flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-white transition-all duration-200 ${
+                      isDarkMode 
+                        ? 'bg-[#00ffff] text-[#0a192f] hover:bg-[#00b3b3]' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <FaUserPlus className="mr-2" /> Sign up
@@ -349,12 +466,24 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Language Selector Mobile */}
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#334155]">
-              <p className="text-xs font-medium text-gray-500 dark:text-[#94a3b8] uppercase px-4 mb-2">Language</p>
-              <button className="flex items-center w-full px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors duration-200">
+            <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
+              <p className={`text-xs font-medium uppercase px-4 mb-2 ${
+                isDarkMode ? 'text-[#94a3b8]' : 'text-gray-500'
+              }`}>
+                Language
+              </p>
+              <button className={`flex items-center w-full px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                isDarkMode 
+                  ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}>
                 <FaGlobe className="mr-3" /> English
               </button>
-              <button className="flex items-center w-full px-4 py-3 rounded-lg text-base font-medium text-gray-700 dark:text-[#a8b2d1] hover:bg-gray-50 dark:hover:bg-[#1e293b] transition-colors duration-200">
+              <button className={`flex items-center w-full px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
+                isDarkMode 
+                  ? 'text-[#a8b2d1] hover:bg-[#1e293b]' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}>
                 <FaGlobe className="mr-3" /> Amharic
               </button>
             </div>
