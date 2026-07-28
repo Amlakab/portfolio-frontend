@@ -1188,7 +1188,18 @@ const { names, subtitles } = getNamesAndSubtitles();
                         )}
                       </div>
                     </div>
-                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ));
+        })() : (
+          <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>
+            No projects data available
+          </p>
+        )}
+      </div>
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <motion.button 
             whileHover={{ scale: 1.05, boxShadow: `0 5px 15px ${colors.primary}40` }} 
             whileTap={{ scale: 0.95 }} 
@@ -1210,17 +1221,6 @@ const { names, subtitles } = getNamesAndSubtitles();
             View All Projects <FiExternalLink style={{ marginLeft: '10px' }} />
           </motion.button>
         </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          ));
-        })() : (
-          <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>
-            No projects data available
-          </p>
-        )}
-      </div>
     </motion.div>
   </div>
 </section>
