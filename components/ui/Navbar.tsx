@@ -138,7 +138,7 @@ const Navbar: React.FC = () => {
             {user ? (
               <div className="flex items-center ml-4 space-x-2">
                 {/* User Menu */}
-                <div className="relative">
+                {/* <div className="relative">
                   <button
                     onClick={toggleUserMenu}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
@@ -208,10 +208,10 @@ const Navbar: React.FC = () => {
                       </button>
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 {/* Language Dropdown */}
-                <div className="relative">
+                {/* <div className="relative">
                   <button
                     onClick={toggleLanguage}
                     className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all duration-300 ${
@@ -247,7 +247,7 @@ const Navbar: React.FC = () => {
                       </button>
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 {/* Theme Toggle */}
                 <button
@@ -268,7 +268,7 @@ const Navbar: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center ml-4 space-x-2">
-                <Link
+                {/* <Link
                   href="/auth/login"
                   className={`px-4 py-2 text-sm font-medium border rounded-lg transition-all duration-300 ${
                     isDarkMode 
@@ -287,10 +287,10 @@ const Navbar: React.FC = () => {
                   }`}
                 >
                   <FaUserPlus className="inline mr-1" /> Sign up
-                </Link>
+                </Link> */}
 
                 {/* Language Dropdown for non-logged in */}
-                <div className="relative">
+                {/* <div className="relative">
                   <button
                     onClick={toggleLanguage}
                     className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-all duration-300 ${
@@ -326,7 +326,7 @@ const Navbar: React.FC = () => {
                       </button>
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 {/* Theme Toggle */}
                 <button
@@ -403,7 +403,7 @@ const Navbar: React.FC = () => {
               ))}
             </div>
 
-            <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
+            {/* <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
               {user ? (
                 <>
                   <div className="px-4 py-2 mb-2">
@@ -475,7 +475,7 @@ const Navbar: React.FC = () => {
                   </Link>
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Language Selector Mobile */}
             <div className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-[#334155]' : 'border-gray-200'}`}>
