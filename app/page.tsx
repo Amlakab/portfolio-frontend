@@ -803,53 +803,55 @@ const { names, subtitles } = getNamesAndSubtitles();
           </div>
         </div>
       </nav> */}
-
-      {/* ===== HERO ===== */}
-      <section id="home" className={styles.heroSection} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', backgroundColor: getSectionBackground(0), color: colors.textPrimary, padding: '100px 0' }}>
-        <div className={styles.container}>
-          <div className={styles.heroGrid}>
-            <div className={styles.heroContent}>
-              <motion.div initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
-                <h1 className={styles.heroTitle} style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '20px', lineHeight: 1.2, fontFamily: "'Poppins', sans-serif", color: colors.textPrimary }}>
-                  Hi, I'm <span style={{ color: colors.primary }}>{names[nameIndex]}</span>
-                </h1>
-                <motion.h2 className={styles.heroSubtitle} key={nameIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 400, marginBottom: '30px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
-                  {subtitles[nameIndex] || 'Software Engineer'}
-                </motion.h2>
-                <p className={styles.heroDescription} style={{ fontSize: '1.1rem', marginBottom: '40px', maxWidth: '600px', color: colors.textPrimary }}>
-                  {settings?.hero?.description || 'I build exceptional digital experiences with modern web technologies.'}
-                </p>
-                <div className={styles.heroCta} style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={styles.btnOutline} style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, padding: '13px 28px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem' }} onClick={() => { const link = document.createElement('a'); link.href = settings?.hero?.resumeUrl || '/documents/Amlakie_Abebaw_Resume.pdf'; link.download = 'Amlakie_Abebaw_Resume.pdf'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }}>
-                    <FiDownload style={{ marginRight: '8px' }} /> Download CV
-                  </motion.button>
-                  <motion.button whileHover={{ scale: 1.05, boxShadow: `0 10px 25px ${colors.primary}80` }} whileTap={{ scale: 0.95 }} className={styles.btnPrimary} style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', border: 'none', padding: '15px 30px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem', boxShadow: `0 5px 15px ${colors.primary}30` }} onClick={() => { const el = document.getElementById('work'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>
-                    View My Work
-                  </motion.button>
-                </div>
-              </motion.div>
-            </div>
-            <div className={styles.heroImage}>
-              <motion.div initial={{ opacity: 0, x: 100, rotate: 5 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={styles.heroImageContainer} style={{ position: 'relative', display: 'flex', justifyContent: 'center', perspective: '1000px' }}>
-                <AnimatePresence mode="wait">
-                  <motion.div key={profileIndex} className={styles.heroImageWrapper} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.6 }} style={{ position: 'relative', width: '100%', maxWidth: '380px', height: '380px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)', transformStyle: 'preserve-3d' }}>
-                    <img 
-                      src={profiles[profileIndex] || '/images/placeholder.jpg'} 
-                      alt="Profile" 
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => {
-                        console.error('Failed to load profile image:', profiles[profileIndex]?.substring(0, 50));
-                        (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
-                      }}
-                    />
-                    <div className={styles.heroImageBg} style={{ position: 'absolute', top: '20px', left: '20px', width: 'calc(100% - 40px)', height: 'calc(100% - 40px)', border: `5px solid ${colors.primary}`, borderRadius: '30px', zIndex: -1, transform: 'rotate(5deg)' }} />
-                  </motion.div>
-                </AnimatePresence>
-              </motion.div>
-            </div>
+{/* ===== HERO ===== */}
+<section id="home" className={styles.heroSection} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', backgroundColor: getSectionBackground(0), color: colors.textPrimary, padding: '100px 0' }}>
+  <div className={styles.container}>
+    <div className={styles.heroGrid}>
+      {/* Image - Will be first on mobile due to order: -1 */}
+      <div className={styles.heroImage}>
+        <motion.div initial={{ opacity: 0, x: 100, rotate: 5 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className={styles.heroImageContainer} style={{ position: 'relative', display: 'flex', justifyContent: 'center', perspective: '1000px' }}>
+          <AnimatePresence mode="wait">
+            <motion.div key={profileIndex} className={styles.heroImageWrapper} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 0.6 }} style={{ position: 'relative', width: '100%', maxWidth: '380px', height: '380px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)', transformStyle: 'preserve-3d' }}>
+              <img 
+                src={profiles[profileIndex] || '/images/placeholder.jpg'} 
+                alt="Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  console.error('Failed to load profile image:', profiles[profileIndex]?.substring(0, 50));
+                  (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
+                }}
+              />
+              <div className={styles.heroImageBg} style={{ position: 'absolute', top: '20px', left: '20px', width: 'calc(100% - 40px)', height: 'calc(100% - 40px)', border: `5px solid ${colors.primary}`, borderRadius: '30px', zIndex: -1, transform: 'rotate(5deg)' }} />
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </div>
+      
+      {/* Content - Will be second on mobile due to order: 0 */}
+      <div className={styles.heroContent}>
+        <motion.div initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
+          <h1 className={styles.heroTitle} style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '20px', lineHeight: 1.2, fontFamily: "'Poppins', sans-serif", color: colors.textPrimary }}>
+            Hi, I'm <span style={{ color: colors.primary }}>{names[nameIndex]}</span>
+          </h1>
+          <motion.h2 className={styles.heroSubtitle} key={nameIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 400, marginBottom: '30px', color: colors.textPrimary, fontFamily: "'Poppins', sans-serif" }}>
+            {subtitles[nameIndex] || 'Software Engineer'}
+          </motion.h2>
+          <p className={styles.heroDescription} style={{ fontSize: '1.1rem', marginBottom: '40px', maxWidth: '600px', color: colors.textPrimary }}>
+            {settings?.hero?.description || 'I build exceptional digital experiences with modern web technologies.'}
+          </p>
+          <div className={styles.heroCta} style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={styles.btnOutline} style={{ backgroundColor: 'transparent', color: colors.primary, border: `2px solid ${colors.primary}`, padding: '13px 28px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem' }} onClick={() => { const link = document.createElement('a'); link.href = settings?.hero?.resumeUrl || '/documents/Amlakie_Abebaw_Resume.pdf'; link.download = 'Amlakie_Abebaw_Resume.pdf'; document.body.appendChild(link); link.click(); document.body.removeChild(link); }}>
+              <FiDownload style={{ marginRight: '8px' }} /> Download CV
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.05, boxShadow: `0 10px 25px ${colors.primary}80` }} whileTap={{ scale: 0.95 }} className={styles.btnPrimary} style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, color: '#ffffff', border: 'none', padding: '15px 30px', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', fontSize: '1rem', boxShadow: `0 5px 15px ${colors.primary}30` }} onClick={() => { const el = document.getElementById('work'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }}>
+              View My Work
+            </motion.button>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* ===== ABOUT ===== */}
       <section id="about" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(1), color: colors.textPrimary }}>

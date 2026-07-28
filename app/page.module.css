@@ -759,3 +759,27 @@
     justify-content: center !important;
   }
 }
+/* Add to your page.module.css */
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* Mobile: Image first, content second */
+@media (max-width: 992px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  /* Reorder: Image first, then content */
+  .heroImage {
+    order: -1; /* This makes it appear first */
+  }
+  
+  .heroContent {
+    order: 0; /* This makes it appear second */
+  }
+}
