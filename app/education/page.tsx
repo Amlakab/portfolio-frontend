@@ -430,7 +430,7 @@ const Portfolio = () => {
           const [
             // projectsRes,
             // experiencesRes,
-            // educationsRes,
+            educationsRes
             // testimonialsRes,
             // blogPostsRes,
             // skillsRes,
@@ -438,7 +438,7 @@ const Portfolio = () => {
           ] = await Promise.all([
             // portfolioApi.getProjects({ featured: true, limit: 3 }),
             // portfolioApi.getExperiences(),
-            // portfolioApi.getEducations(),
+            portfolioApi.getEducations(),
             // portfolioApi.getTestimonials({ featured: true }),
             // portfolioApi.getBlogPosts({ published: true, limit: 2 }),
             // portfolioApi.getSkills(),
@@ -463,11 +463,11 @@ const Portfolio = () => {
         //   }
   
         //   // Extract and set educations
-        //   const educationsData = extractData(educationsRes);
-        //   if (Array.isArray(educationsData) && educationsData.length > 0) {
-        //     console.log('📦 Educations loaded:', educationsData.length);
-        //     setEducations(educationsData);
-        //   }
+          const educationsData = extractData(educationsRes);
+          if (Array.isArray(educationsData) && educationsData.length > 0) {
+            console.log('📦 Educations loaded:', educationsData.length);
+            setEducations(educationsData);
+          }
   
         //   // Extract and set testimonials
         //   const testimonialsData = extractData(testimonialsRes);
