@@ -23,7 +23,7 @@ import portfolioApi from '@/lib/api/portfolio';
 import styles from './page.module.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Navbar from '@/components/ui/Navbar';
-
+import toast, { Toaster } from 'react-hot-toast';
 
 // ===== Types =====
 interface Project {
@@ -437,55 +437,62 @@ const Portfolio = () => {
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  e.preventDefault();
+  setIsSubmitting(true);
+  
+  // Show loading toast
+  const loadingToast = toast.loading('Sending your message...');
+  
+  if (!formData.contact) {
+    toast.dismiss(loadingToast);
+    toast.error('Please provide either a phone number or email address');
+    setIsSubmitting(false);
+    return;
+  }
+  
+  try {
+    const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
     
-    if (!formData.contact) {
-      alert('Please provide either a phone number or email address');
-      setIsSubmitting(false);
-      return;
-    }
+    const submitData = {
+      name: formData.name,
+      phone: formData.contact.includes('@') ? '' : formData.contact,
+      email: formData.contact.includes('@') ? formData.contact : '',
+      subject: formData.subject,
+      message: formData.message
+    };
     
-    try {
-      const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001/api';
+    const response = await fetch(`${BASE_URL}/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(submitData),
+    });
+
+    const result = await response.json();
+
+    toast.dismiss(loadingToast);
+
+    if (response.ok) {
+      toast.success('✅ Message sent successfully! We will get back to you soon.');
       
-      const submitData = {
-        name: formData.name,
-        phone: formData.contact.includes('@') ? '' : formData.contact,
-        email: formData.contact.includes('@') ? formData.contact : '',
-        subject: formData.subject,
-        message: formData.message
-      };
-      
-      const response = await fetch(`${BASE_URL}/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
+      setFormData({
+        name: '',
+        contact: '',
+        subject: '',
+        message: ''
       });
-  
-      const result = await response.json();
-  
-      if (response.ok) {
-        alert('Message sent successfully! We will get back to you soon.');
-        
-        setFormData({
-          name: '',
-          contact: '',
-          subject: '',
-          message: ''
-        });
-      } else {
-        alert(`Error: ${result.error || 'Failed to send message'}`);
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      alert('Network error. Please check your connection and try again.');
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      toast.error(`❌ ${result.error || 'Failed to send message'}`);
     }
-  };
+  } catch (error) {
+    console.error('Submission error:', error);
+    toast.dismiss(loadingToast);
+    toast.error('❌ Network error. Please check your connection and try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
 
 
@@ -832,6 +839,32 @@ const { names, subtitles } = getNamesAndSubtitles();
 
   return (
     <div className={styles.portfolioApp} style={{ backgroundColor: colors.bgPrimary, color: colors.textPrimary, transition: 'background-color 0.3s ease, color 0.3s ease' }}>
+      {/* Add Toaster here */}
+    <Toaster 
+      position="top-right"
+      toastOptions={{
+        style: {
+          background: isDarkMode ? '#1e293b' : '#fff',
+          color: isDarkMode ? '#ccd6f6' : '#333',
+          borderRadius: '10px',
+          padding: '16px',
+        },
+        success: {
+          duration: 5000,
+          iconTheme: {
+            primary: '#4ade80',
+            secondary: '#fff',
+          },
+        },
+        error: {
+          duration: 5000,
+          iconTheme: {
+            primary: '#ef4444',
+            secondary: '#fff',
+          },
+        },
+      }}
+    />
       {/* Animated Background */}
       <div className={styles.animatedBg}>
         {[...Array(30)].map((_, i) => (
