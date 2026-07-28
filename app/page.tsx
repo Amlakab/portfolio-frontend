@@ -436,11 +436,11 @@ const Portfolio = () => {
           skillsRes,
           settingsRes
         ] = await Promise.all([
-          portfolioApi.getProjects({ featured: true, limit: 3 }),
+          portfolioApi.getProjects({ featured: true, limit: 6 }),
           portfolioApi.getExperiences(),
           portfolioApi.getEducations(),
           portfolioApi.getTestimonials({ featured: true }),
-          portfolioApi.getBlogPosts({ published: true, limit: 2 }),
+          portfolioApi.getBlogPosts({ published: true, limit: 4 }),
           portfolioApi.getSkills(),
           portfolioApi.getSettings(),
         ]);
@@ -1002,6 +1002,28 @@ const { names, subtitles } = getNamesAndSubtitles();
                 </motion.div>
               </div>
             </div>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <motion.button 
+            whileHover={{ scale: 1.05, boxShadow: `0 5px 15px ${colors.primary}40` }} 
+            whileTap={{ scale: 0.95 }} 
+            onClick={() => window.location.href = '/skill'}
+            style={{ 
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, 
+              color: '#ffffff', 
+              border: 'none', 
+              padding: '15px 40px', 
+              borderRadius: '50px', 
+              fontWeight: 600, 
+              cursor: 'pointer', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              fontSize: '1.1rem',
+              boxShadow: `0 5px 15px ${colors.primary}30`
+            }}
+          >
+            View All Skills <FiExternalLink style={{ marginLeft: '10px' }} />
+          </motion.button>
+        </div>
           </motion.div>
         </div>
       </section>
@@ -1166,6 +1188,28 @@ const { names, subtitles } = getNamesAndSubtitles();
                         )}
                       </div>
                     </div>
+                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <motion.button 
+            whileHover={{ scale: 1.05, boxShadow: `0 5px 15px ${colors.primary}40` }} 
+            whileTap={{ scale: 0.95 }} 
+            onClick={() => window.location.href = '/work'}
+            style={{ 
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, 
+              color: '#ffffff', 
+              border: 'none', 
+              padding: '15px 40px', 
+              borderRadius: '50px', 
+              fontWeight: 600, 
+              cursor: 'pointer', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              fontSize: '1.1rem',
+              boxShadow: `0 5px 15px ${colors.primary}30`
+            }}
+          >
+            View All Projects <FiExternalLink style={{ marginLeft: '10px' }} />
+          </motion.button>
+        </div>
                   </motion.div>
                 );
               })}
@@ -1270,6 +1314,28 @@ const { names, subtitles } = getNamesAndSubtitles();
                 <p style={{ textAlign: 'center', color: colors.textSecondary, width: '100%', padding: '40px 0' }}>No blog posts available</p>
               )}
             </div>
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <motion.button 
+            whileHover={{ scale: 1.05, boxShadow: `0 5px 15px ${colors.primary}40` }} 
+            whileTap={{ scale: 0.95 }} 
+            onClick={() => window.location.href = '/blog'}
+            style={{ 
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`, 
+              color: '#ffffff', 
+              border: 'none', 
+              padding: '15px 40px', 
+              borderRadius: '50px', 
+              fontWeight: 600, 
+              cursor: 'pointer', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              fontSize: '1.1rem',
+              boxShadow: `0 5px 15px ${colors.primary}30`
+            }}
+          >
+            View All Articles <FiExternalLink style={{ marginLeft: '10px' }} />
+          </motion.button>
+        </div>
           </motion.div>
         </div>
       </section>
