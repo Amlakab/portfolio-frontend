@@ -433,10 +433,10 @@ const Portfolio = () => {
             // projectsRes,
             // experiencesRes,
             // educationsRes,
-            testimonialsRes
+            testimonialsRes,
             // blogPostsRes,
             // skillsRes,
-            // settingsRes
+            settingsRes
           ] = await Promise.all([
             // portfolioApi.getProjects({ featured: true, limit: 3 }),
             // portfolioApi.getExperiences(),
@@ -444,7 +444,7 @@ const Portfolio = () => {
             portfolioApi.getTestimonials({ featured: true }),
             // portfolioApi.getBlogPosts({ published: true, limit: 2 }),
             // portfolioApi.getSkills(),
-            // portfolioApi.getSettings(),
+            portfolioApi.getSettings(),
           ]);
   
           // Extract and set projects
@@ -499,15 +499,15 @@ const Portfolio = () => {
         //   }
   
         //   // Extract and set settings
-        //   const settingsData = extractData(settingsRes);
-        //   console.log('📦 Settings data extracted:', settingsData);
-        //   if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
-        //     console.log('📦 Settings loaded from database');
-        //     console.log('📸 Settings hero:', settingsData.hero);
-        //     setSettings(settingsData);
-        //   } else {
-        //     console.warn('⚠️ No settings data found');
-        //   }
+          const settingsData = extractData(settingsRes);
+          console.log('📦 Settings data extracted:', settingsData);
+          if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
+            console.log('📦 Settings loaded from database');
+            console.log('📸 Settings hero:', settingsData.hero);
+            setSettings(settingsData);
+          } else {
+            console.warn('⚠️ No settings data found');
+          }
   
         } catch (error) {
           console.error('❌ Failed to fetch portfolio data:', error);

@@ -506,19 +506,19 @@ const handleSubmit = async (e: React.FormEvent) => {
           const [
             // projectsRes,
             // experiencesRes,
-            educationsRes
+            // educationsRes
             // testimonialsRes,
             // blogPostsRes,
             // skillsRes,
-            // settingsRes
+            settingsRes
           ] = await Promise.all([
             // portfolioApi.getProjects({ featured: true, limit: 3 }),
             // portfolioApi.getExperiences(),
-            portfolioApi.getEducations(),
+            // portfolioApi.getEducations(),
             // portfolioApi.getTestimonials({ featured: true }),
             // portfolioApi.getBlogPosts({ published: true, limit: 2 }),
             // portfolioApi.getSkills(),
-            // portfolioApi.getSettings(),
+            portfolioApi.getSettings(),
           ]);
   
           // Extract and set projects
@@ -539,11 +539,11 @@ const handleSubmit = async (e: React.FormEvent) => {
         //   }
   
         //   // Extract and set educations
-          const educationsData = extractData(educationsRes);
-          if (Array.isArray(educationsData) && educationsData.length > 0) {
-            console.log('📦 Educations loaded:', educationsData.length);
-            setEducations(educationsData);
-          }
+          // const educationsData = extractData(educationsRes);
+          // if (Array.isArray(educationsData) && educationsData.length > 0) {
+          //   console.log('📦 Educations loaded:', educationsData.length);
+          //   setEducations(educationsData);
+          // }
   
         //   // Extract and set testimonials
         //   const testimonialsData = extractData(testimonialsRes);
@@ -573,15 +573,15 @@ const handleSubmit = async (e: React.FormEvent) => {
         //   }
   
         //   // Extract and set settings
-        //   const settingsData = extractData(settingsRes);
-        //   console.log('📦 Settings data extracted:', settingsData);
-        //   if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
-        //     console.log('📦 Settings loaded from database');
-        //     console.log('📸 Settings hero:', settingsData.hero);
-        //     setSettings(settingsData);
-        //   } else {
-        //     console.warn('⚠️ No settings data found');
-        //   }
+          const settingsData = extractData(settingsRes);
+          console.log('📦 Settings data extracted:', settingsData);
+          if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
+            console.log('📦 Settings loaded from database');
+            console.log('📸 Settings hero:', settingsData.hero);
+            setSettings(settingsData);
+          } else {
+            console.warn('⚠️ No settings data found');
+          }
   
         } catch (error) {
           console.error('❌ Failed to fetch portfolio data:', error);

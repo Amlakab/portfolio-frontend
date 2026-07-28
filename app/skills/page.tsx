@@ -433,8 +433,8 @@ const Portfolio = () => {
             // educationsRes,
             // testimonialsRes,
             // blogPostsRes,
-            skillsRes
-            // settingsRes
+            skillsRes,
+            settingsRes
           ] = await Promise.all([
             // portfolioApi.getProjects({ featured: true, limit: 3 }),
             // portfolioApi.getExperiences(),
@@ -442,7 +442,7 @@ const Portfolio = () => {
             // portfolioApi.getTestimonials({ featured: true }),
             // portfolioApi.getBlogPosts({ published: true, limit: 2 }),
             portfolioApi.getSkills(),
-            // portfolioApi.getSettings(),
+            portfolioApi.getSettings(),
           ]);
   
           // Extract and set projects
@@ -477,14 +477,14 @@ const Portfolio = () => {
         //   }
   
         //   // Extract and set blog posts
-        //   const blogPostsData = extractData(blogPostsRes);
-        //   console.log('📦 Blog posts data extracted:', blogPostsData);
-        //   if (Array.isArray(blogPostsData) && blogPostsData.length > 0) {
-        //     console.log('📦 Blog posts loaded:', blogPostsData.length);
-        //     setBlogPosts(blogPostsData);
-        //   } else {
-        //     console.warn('⚠️ No blog posts data found or invalid format');
-        //   }
+          // const blogPostsData = extractData(blogPostsRes);
+          // console.log('📦 Blog posts data extracted:', blogPostsData);
+          // if (Array.isArray(blogPostsData) && blogPostsData.length > 0) {
+          //   console.log('📦 Blog posts loaded:', blogPostsData.length);
+          //   setBlogPosts(blogPostsData);
+          // } else {
+          //   console.warn('⚠️ No blog posts data found or invalid format');
+          // }
   
         //   // Extract and set skills
           const skillsData = extractData(skillsRes);
@@ -497,15 +497,15 @@ const Portfolio = () => {
           }
   
         //   // Extract and set settings
-        //   const settingsData = extractData(settingsRes);
-        //   console.log('📦 Settings data extracted:', settingsData);
-        //   if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
-        //     console.log('📦 Settings loaded from database');
-        //     console.log('📸 Settings hero:', settingsData.hero);
-        //     setSettings(settingsData);
-        //   } else {
-        //     console.warn('⚠️ No settings data found');
-        //   }
+          const settingsData = extractData(settingsRes);
+          console.log('📦 Settings data extracted:', settingsData);
+          if (settingsData && typeof settingsData === 'object' && Object.keys(settingsData).length > 0) {
+            console.log('📦 Settings loaded from database');
+            console.log('📸 Settings hero:', settingsData.hero);
+            setSettings(settingsData);
+          } else {
+            console.warn('⚠️ No settings data found');
+          }
   
         } catch (error) {
           console.error('❌ Failed to fetch portfolio data:', error);
