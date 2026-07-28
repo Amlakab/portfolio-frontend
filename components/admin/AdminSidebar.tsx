@@ -110,18 +110,6 @@ const allMenuItems: MenuItem[] = [
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'Secretary', 'Limat', 'manager', 'chef', 'waiter', 'customer'] 
   },
   { 
-    name: 'QR Code', 
-    href: '/admin/qrcode', 
-    icon: QrCode,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary'] 
-  },
-  {
-    name: 'Reports', 
-    href: '/admin/reports', 
-    icon: TrendingUp,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'Audite', 'manager'] 
-  },
-  { 
     name: 'Security', 
     href: '/admin/security', 
     icon: Shield,
