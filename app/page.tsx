@@ -1331,6 +1331,7 @@ const { names, subtitles } = getNamesAndSubtitles();
 </section>
 
       {/* ===== TESTIMONIALS ===== */}
+{/* ===== TESTIMONIALS ===== */}
 <section id="testimonials" className={styles.section} style={{ padding: '100px 0', position: 'relative', backgroundColor: getSectionBackground(6), color: colors.textPrimary }}>
   <div className={styles.container}>
     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ duration: 0.8 }} variants={fadeInUp}>
@@ -1341,34 +1342,34 @@ const { names, subtitles } = getNamesAndSubtitles();
         </h2>
       </div>
       
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', maxWidth: '100%', margin: '0 auto' }}>
         {/* Navigation Arrows */}
         <button
           onClick={() => {
             const slider = document.getElementById('testimonialSlider');
             if (slider) {
-              slider.scrollBy({ left: -slider.clientWidth * 0.8, behavior: 'smooth' });
+              slider.scrollBy({ left: -slider.clientWidth, behavior: 'smooth' });
             }
           }}
           style={{
             position: 'absolute',
-            left: '-20px',
+            left: '-10px',
             top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 10,
-            width: '50px',
-            height: '50px',
+            width: '45px',
+            height: '45px',
             borderRadius: '50%',
             border: `2px solid ${colors.primary}`,
-            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(255, 255, 255, 0.9)',
             color: colors.primary,
-            fontSize: '1.5rem',
+            fontSize: '1.3rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
             backdropFilter: 'blur(10px)',
           }}
           onMouseEnter={(e) => {
@@ -1377,7 +1378,7 @@ const { names, subtitles } = getNamesAndSubtitles();
             e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(255, 255, 255, 0.9)';
             e.currentTarget.style.color = colors.primary;
             e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
           }}
@@ -1390,28 +1391,28 @@ const { names, subtitles } = getNamesAndSubtitles();
           onClick={() => {
             const slider = document.getElementById('testimonialSlider');
             if (slider) {
-              slider.scrollBy({ left: slider.clientWidth * 0.8, behavior: 'smooth' });
+              slider.scrollBy({ left: slider.clientWidth, behavior: 'smooth' });
             }
           }}
           style={{
             position: 'absolute',
-            right: '-20px',
+            right: '-10px',
             top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 10,
-            width: '50px',
-            height: '50px',
+            width: '45px',
+            height: '45px',
             borderRadius: '50%',
             border: `2px solid ${colors.primary}`,
-            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(255, 255, 255, 0.9)',
             color: colors.primary,
-            fontSize: '1.5rem',
+            fontSize: '1.3rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
             backdropFilter: 'blur(10px)',
           }}
           onMouseEnter={(e) => {
@@ -1420,7 +1421,7 @@ const { names, subtitles } = getNamesAndSubtitles();
             e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(10, 25, 47, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(255, 255, 255, 0.9)';
             e.currentTarget.style.color = colors.primary;
             e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
           }}
@@ -1429,46 +1430,55 @@ const { names, subtitles } = getNamesAndSubtitles();
           ❯
         </button>
 
-        {/* Testimonial Slider */}
+        {/* Testimonial Slider - Full Width */}
         <div 
           id="testimonialSlider"
           className={styles.testimonialSlider} 
           style={{ 
             position: 'relative', 
-            padding: '20px 10px', 
+            padding: '20px 0', 
             display: 'flex', 
-            gap: '30px', 
+            gap: '0', 
             overflowX: 'auto', 
             scrollSnapType: 'x mandatory',
             scrollbarWidth: 'none',
             WebkitOverflowScrolling: 'touch',
+            scrollBehavior: 'smooth',
           }}
         >
           {testimonials.length > 0 ? testimonials.map((testimonial) => (
             <motion.div 
               key={testimonial._id} 
               className={styles.testimonialCard} 
-              whileHover={{ scale: 1.02, boxShadow: `0 15px 30px ${colors.shadow}` }} 
               style={{ 
                 backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.5)' : 'rgba(248, 249, 250, 0.7)', 
                 borderRadius: '20px', 
-                padding: 'clamp(20px, 4vw, 40px)', 
+                padding: isMobile ? '30px 20px' : '50px 60px',
                 boxShadow: `0 15px 40px ${colors.shadow}`, 
-                minWidth: isMobile ? '85%' : '80%',
-                maxWidth: isMobile ? '85%' : '80%',
+                minWidth: '100%',
+                maxWidth: '100%',
+                width: '100%',
                 scrollSnapAlign: 'start',
                 flexShrink: 0,
                 transition: 'all 0.3s ease',
                 border: `1px solid ${colors.border}`,
+                margin: '0',
               }}
             >
-              <div className={styles.testimonialHeader} style={{ display: 'flex', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
+              <div className={styles.testimonialHeader} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                marginBottom: '25px', 
+                flexWrap: 'wrap', 
+                gap: '15px',
+                justifyContent: isMobile ? 'center' : 'flex-start',
+              }}>
                 <div className={styles.testimonialAvatar} style={{ 
-                  width: isMobile ? '60px' : '80px', 
-                  height: isMobile ? '60px' : '80px', 
+                  width: isMobile ? '70px' : '90px', 
+                  height: isMobile ? '70px' : '90px', 
                   borderRadius: '50%', 
                   overflow: 'hidden', 
-                  marginRight: isMobile ? '15px' : '25px', 
+                  marginRight: isMobile ? '0' : '25px', 
                   border: `3px solid ${colors.primary}`, 
                   boxShadow: `0 5px 15px ${colors.shadow}`, 
                   position: 'relative',
@@ -1484,9 +1494,13 @@ const { names, subtitles } = getNamesAndSubtitles();
                     }}
                   />
                 </div>
-                <div className={styles.testimonialAuthor} style={{ flex: 1, minWidth: '150px' }}>
+                <div className={styles.testimonialAuthor} style={{ 
+                  flex: 1, 
+                  minWidth: '150px',
+                  textAlign: isMobile ? 'center' : 'left',
+                }}>
                   <h4 style={{ 
-                    fontSize: isMobile ? '1.1rem' : '1.4rem', 
+                    fontSize: isMobile ? '1.2rem' : '1.6rem', 
                     marginBottom: '5px', 
                     color: colors.textPrimary, 
                     fontFamily: "'Poppins', sans-serif" 
@@ -1494,14 +1508,19 @@ const { names, subtitles } = getNamesAndSubtitles();
                     {testimonial.name}
                   </h4>
                   <p style={{ 
-                    fontSize: isMobile ? '0.85rem' : '1rem', 
+                    fontSize: isMobile ? '0.9rem' : '1.1rem', 
                     color: colors.textSecondary, 
                     marginBottom: '10px', 
                     opacity: 0.8 
                   }}>
                     {testimonial.role}
                   </p>
-                  <div className={styles.testimonialRating} style={{ color: '#ffc107', fontSize: isMobile ? '0.9rem' : '1.1rem' }}>
+                  <div className={styles.testimonialRating} style={{ 
+                    color: '#ffc107', 
+                    fontSize: isMobile ? '1rem' : '1.2rem',
+                    justifyContent: isMobile ? 'center' : 'flex-start',
+                    display: 'flex',
+                  }}>
                     {[...Array(testimonial.rating)].map((_, i) => <span key={i}>★</span>)}
                   </div>
                 </div>
@@ -1512,8 +1531,10 @@ const { names, subtitles } = getNamesAndSubtitles();
                   lineHeight: 1.8, 
                   position: 'relative', 
                   paddingLeft: '30px', 
-                  fontSize: isMobile ? '0.95rem' : '1.1rem', 
-                  color: colors.textPrimary 
+                  paddingRight: '20px',
+                  fontSize: isMobile ? '1rem' : '1.2rem', 
+                  color: colors.textPrimary,
+                  textAlign: isMobile ? 'center' : 'left',
                 }}>
                   <span style={{ 
                     position: 'absolute', 
@@ -1538,11 +1559,11 @@ const { names, subtitles } = getNamesAndSubtitles();
         </div>
 
         {/* Dots Indicator */}
-        {testimonials.length > 0 && (
+        {testimonials.length > 1 && (
           <div style={{ 
             display: 'flex', 
             justifyContent: 'center', 
-            gap: '10px', 
+            gap: '12px', 
             marginTop: '30px',
             flexWrap: 'wrap',
           }}>
@@ -1552,8 +1573,7 @@ const { names, subtitles } = getNamesAndSubtitles();
                 onClick={() => {
                   const slider = document.getElementById('testimonialSlider');
                   if (slider) {
-                    const cardWidth = slider.clientWidth * 0.8;
-                    slider.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+                    slider.scrollTo({ left: slider.clientWidth * index, behavior: 'smooth' });
                   }
                 }}
                 style={{
