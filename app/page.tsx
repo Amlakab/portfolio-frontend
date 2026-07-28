@@ -22,6 +22,8 @@ import { MdRecordVoiceOver } from 'react-icons/md';
 import portfolioApi from '@/lib/api/portfolio';
 import styles from './page.module.css';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import Navbar from '@/components/ui/Navbar';
+
 
 // ===== Types =====
 interface Project {
@@ -778,8 +780,10 @@ const { names, subtitles } = getNamesAndSubtitles();
         ))}
       </div>
 
+      <Navbar />
+
       {/* Navigation */}
-      <nav className={styles.portfolioNav} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(248, 249, 250, 0.9)', backdropFilter: 'blur(10px)', color: colors.textPrimary }}>
+      {/* <nav className={styles.portfolioNav} style={{ backgroundColor: isDarkMode ? 'rgba(10, 25, 47, 0.9)' : 'rgba(248, 249, 250, 0.9)', backdropFilter: 'blur(10px)', color: colors.textPrimary }}>
         <div className={styles.navContainer}>
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
             <a href="#home" className={styles.logo} style={{ color: colors.primary, fontSize: '1.8rem', fontWeight: 700, fontFamily: "'Poppins', sans-serif", letterSpacing: '1px' }} onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>Amlakie</a>
@@ -798,7 +802,7 @@ const { names, subtitles } = getNamesAndSubtitles();
             </motion.div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       {/* ===== HERO ===== */}
       <section id="home" className={styles.heroSection} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', backgroundColor: getSectionBackground(0), color: colors.textPrimary, padding: '100px 0' }}>
