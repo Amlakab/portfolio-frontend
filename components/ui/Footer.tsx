@@ -20,7 +20,7 @@ import { AiFillGithub, AiFillLinkedin } from 'react-icons/ai';
 import { RiArticleLine } from 'react-icons/ri';
 import { MdRecordVoiceOver } from 'react-icons/md';
 import portfolioApi from '@/lib/api/portfolio';
-import styles from '.@/app/page.module.css';
+import styles from '@/app/page.module.css';
 import { ThemeProvider, useTheme } from '@/app/context/ThemeContext';
 import Navbar from '@/components/ui/Navbar';
 
