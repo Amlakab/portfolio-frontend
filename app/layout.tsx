@@ -8,8 +8,8 @@ import { AuthProvider } from "@/lib/auth";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Cafterya Management System",
-  description: "Official website of the Cafterya Management System",
+  title: "Amlakie Portfolio",
+  description: "Official website of the Amlakie Portfolio",
 };
 export default function RootLayout({
   children,
