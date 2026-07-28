@@ -3,11 +3,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Paper, TextField, Button, Alert, Snackbar, CircularProgress,
-  Divider, IconButton, Card, useMediaQuery,
+  Divider, IconButton, Card, useMediaQuery, CardContent, Stack,
 } from '@mui/material';
-import { Add, Delete, CloudUpload, Save, Close, Refresh } from '@mui/icons-material';
+import { Add, Delete, CloudUpload, Save, Close, Refresh, 
+  Person, Info, ContactPage, Assessment, Search, Link, 
+  Email, Phone, LocationOn, GitHub, LinkedIn, Twitter, 
+  Language, Visibility } from '@mui/icons-material';
 import { useTheme } from '@/lib/theme-context';
 import portfolioApi from '@/lib/api/portfolio';
+import { motion } from 'framer-motion';
+import { Settings } from 'lucide-react';
 
 interface Settings {
   hero: {
@@ -68,11 +73,8 @@ const initialSettings: Settings = {
 const getImageUrl = (item: any): string | null => {
   if (!item) return null;
 
-  // Check for imageData
   if (item.imageData) {
     let base64 = '';
-    
-    // Handle different data formats
     if (typeof item.imageData.data === 'string') {
       base64 = item.imageData.data;
     } else if (item.imageData.data?.$binary?.base64) {
@@ -97,13 +99,11 @@ const getImageUrl = (item: any): string | null => {
         console.warn('Failed to convert complex imageData:', e);
       }
     }
-    
     if (base64) {
       return `data:${item.imageData.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
 
-  // Handle image URL
   if (item.image) {
     if (item.image.startsWith('data:image')) {
       return item.image;
@@ -121,11 +121,9 @@ const getImageUrl = (item: any): string | null => {
   return null;
 };
 
-// Helper function to get profile image URL
 const getProfileImageUrl = (profileImage: any): string | null => {
   if (!profileImage) return null;
 
-  // If it's a string URL
   if (typeof profileImage === 'string') {
     if (profileImage.startsWith('data:')) return profileImage;
     if (profileImage.startsWith('/uploads/')) {
@@ -138,11 +136,9 @@ const getProfileImageUrl = (profileImage: any): string | null => {
     return profileImage;
   }
 
-  // If it's an object with imageData
   if (profileImage.imageData) {
     let base64 = '';
     const data = profileImage.imageData;
-    
     if (typeof data.data === 'string') {
       base64 = data.data;
     } else if (data.data?.$binary?.base64) {
@@ -160,17 +156,14 @@ const getProfileImageUrl = (profileImage: any): string | null => {
     } else if (data.data instanceof Buffer) {
       base64 = data.data.toString('base64');
     }
-    
     if (base64) {
       return `data:${data.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
 
-  // If it's directly the image data object
   if (profileImage.data) {
     let base64 = '';
     const data = profileImage;
-    
     if (typeof data.data === 'string') {
       base64 = data.data;
     } else if (data.data?.$binary?.base64) {
@@ -188,13 +181,50 @@ const getProfileImageUrl = (profileImage: any): string | null => {
     } else if (data.data instanceof Buffer) {
       base64 = data.data.toString('base64');
     }
-    
     if (base64) {
       return `data:${data.contentType || 'image/jpeg'};base64,${base64}`;
     }
   }
 
   return null;
+};
+
+// Section Card Component
+const SectionCard = ({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Paper sx={{ 
+        p: 3, 
+        mb: 4, 
+        borderRadius: 2,
+        backgroundColor: isDark ? '#0f172a80' : 'white', 
+        border: isDark ? '1px solid #334155' : '1px solid #e5e7eb',
+        boxShadow: isDark 
+          ? '0 2px 8px rgba(0,0,0,0.3)' 
+          : '0 2px 8px rgba(0,0,0,0.08)'
+      }}>
+        <Typography variant="h6" sx={{ 
+          fontWeight: 600, 
+          mb: 3, 
+          color: isDark ? '#00ffff' : '#007bff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}>
+          {icon} {title}
+        </Typography>
+        {children}
+      </Paper>
+    </motion.div>
+  );
 };
 
 export default function SettingsTab() {
@@ -216,6 +246,19 @@ export default function SettingsTab() {
   const [profileImagePreviews, setProfileImagePreviews] = useState<string[]>([]);
   const [existingProfileImages, setExistingProfileImages] = useState<string[]>([]);
 
+  // Form field styles
+  const textFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: isDark ? '#1e293b' : 'white',
+      color: isDark ? '#ccd6f6' : '#333',
+      '& fieldset': { borderColor: isDark ? '#334155' : '#e5e7eb' },
+      '&:hover fieldset': { borderColor: isDark ? '#00ffff' : '#007bff' },
+      '&.Mui-focused fieldset': { borderColor: isDark ? '#00ffff' : '#007bff' },
+    },
+    '& .MuiInputLabel-root': { color: isDark ? '#a8b2d1' : '#666' },
+    '& .MuiInputLabel-root.Mui-focused': { color: isDark ? '#00ffff' : '#007bff' },
+  };
+
   const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
@@ -227,40 +270,30 @@ export default function SettingsTab() {
       if (data) {
         setSettings(data);
 
-        // Handle about image
         if (data.about?.imageData) {
           const preview = getImageUrl({ imageData: data.about.imageData });
-          console.log('📸 About imageData preview:', preview ? 'Generated' : 'Failed');
           if (preview) {
             setExistingAboutImage(preview);
             setAboutImagePreview(preview);
           }
         } else if (data.about?.image) {
           const preview = getImageUrl({ image: data.about.image });
-          console.log('📸 About image preview:', preview ? 'Generated' : 'Failed');
           if (preview) {
             setExistingAboutImage(preview);
             setAboutImagePreview(preview);
           }
         }
 
-        // Handle profile images
         if (data.hero?.profileImagesData && data.hero.profileImagesData.length > 0) {
-          console.log('📸 Profile imagesData count:', data.hero.profileImagesData.length);
           const previews = data.hero.profileImagesData
             .map((img: any) => getProfileImageUrl({ imageData: img }))
             .filter((p: string | null) => p !== null);
-          
-          console.log('📸 Generated profile previews:', previews.length);
           setExistingProfileImages(previews);
           setProfileImagePreviews(previews);
         } else if (data.hero?.profileImages && data.hero.profileImages.length > 0) {
-          console.log('📸 Profile images count:', data.hero.profileImages.length);
           const previews = data.hero.profileImages
             .map((img: string) => getProfileImageUrl(img))
             .filter((p: string | null) => p !== null);
-          
-          console.log('📸 Generated profile previews from URLs:', previews.length);
           setExistingProfileImages(previews);
           setProfileImagePreviews(previews);
         }
@@ -381,26 +414,17 @@ export default function SettingsTab() {
 
       if (aboutImage) {
         fd.append('aboutImage', aboutImage);
-        console.log('📎 New about image:', aboutImage.name);
       }
 
       profileImages.forEach(file => {
         fd.append('profileImages', file);
-        console.log('📎 New profile image:', file.name);
       });
 
-      console.log('📤 Sending settings update...');
-      console.log('📎 About image:', aboutImage ? aboutImage.name : 'None');
-      console.log('📎 Profile images:', profileImages.length);
-
       const response = await portfolioApi.updateSettings(fd);
-      console.log('✅ Settings updated successfully:', response);
-
-      setSuccess('Settings updated successfully');
       
+      setSuccess('Settings updated successfully');
       setAboutImage(null);
       setProfileImages([]);
-      
       await fetchSettings();
     } catch (err: any) {
       console.error('❌ Failed to update settings:', err);
@@ -408,18 +432,6 @@ export default function SettingsTab() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const textFieldStyle = {
-    '& .MuiOutlinedInput-root': {
-      backgroundColor: isDark ? '#1e293b' : 'white',
-      color: isDark ? '#ccd6f6' : '#333',
-      '& fieldset': { borderColor: isDark ? '#334155' : '#e5e7eb' },
-      '&:hover fieldset': { borderColor: isDark ? '#00ffff' : '#007bff' },
-      '&.Mui-focused fieldset': { borderColor: isDark ? '#00ffff' : '#007bff' },
-    },
-    '& .MuiInputLabel-root': { color: isDark ? '#a8b2d1' : '#666' },
-    '& .MuiInputLabel-root.Mui-focused': { color: isDark ? '#00ffff' : '#007bff' },
   };
 
   if (loading) {
@@ -432,34 +444,56 @@ export default function SettingsTab() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h6" sx={{ color: isDark ? '#ccd6f6' : '#333' }}>
-          Site Settings
-        </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<Refresh />}
-          onClick={fetchSettings}
-          sx={{
-            borderColor: isDark ? '#00ffff' : '#007bff',
-            color: isDark ? '#00ffff' : '#007bff',
-            '&:hover': {
-              backgroundColor: isDark ? '#00ffff20' : '#007bff10',
-            },
-          }}
-        >
-          Refresh
-        </Button>
-      </Box>
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          mb: 4, 
+          gap: 2 
+        }}>
+          <Box>
+            <Typography variant={isMobile ? "h6" : "h5"} sx={{ 
+              fontWeight: 'bold', 
+              color: isDark ? '#ccd6f6' : '#333333',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}>
+              <Settings /> Site Settings
+            </Typography>
+            <Typography variant="body2" color={isDark ? '#a8b2d1' : '#666666'}>
+              Configure your portfolio appearance and content
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<Refresh />}
+            onClick={fetchSettings}
+            sx={{
+              borderColor: isDark ? '#00ffff' : '#007bff',
+              color: isDark ? '#00ffff' : '#007bff',
+              borderRadius: 1,
+              '&:hover': {
+                backgroundColor: isDark ? '#00ffff20' : '#007bff10',
+              },
+            }}
+          >
+            Refresh
+          </Button>
+        </Box>
+      </motion.div>
 
       {/* Hero Section */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          Hero Section
-        </Typography>
-
+      <SectionCard title="Hero Section" icon={<Person />}>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: isDark ? '#a8b2d1' : '#666' }}>
+          <Typography variant="subtitle2" sx={{ mb: 2, color: isDark ? '#a8b2d1' : '#666' }}>
             Profile Images ({profileImagePreviews.length})
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -480,7 +514,6 @@ export default function SettingsTab() {
                   alt={`Profile ${index + 1}`}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => {
-                    console.error('Failed to load profile image:', preview);
                     (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
                   }}
                 />
@@ -510,7 +543,11 @@ export default function SettingsTab() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                '&:hover': { borderColor: isDark ? '#00ffff' : '#007bff' },
+                transition: 'all 0.3s ease',
+                '&:hover': { 
+                  borderColor: isDark ? '#00ffff' : '#007bff',
+                  backgroundColor: isDark ? '#00ffff20' : '#007bff10',
+                },
               }}
               onClick={() => document.getElementById('profile-images')?.click()}
             >
@@ -566,13 +603,10 @@ export default function SettingsTab() {
             sx={textFieldStyle}
           />
         </Box>
-      </Paper>
+      </SectionCard>
 
       {/* About Section */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          About Section
-        </Typography>
+      <SectionCard title="About Section" icon={<Info />}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
             <Box 
@@ -586,7 +620,12 @@ export default function SettingsTab() {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                cursor: 'pointer' 
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                '&:hover': { 
+                  borderColor: isDark ? '#00ffff' : '#007bff',
+                  backgroundColor: isDark ? '#00ffff20' : '#007bff10',
+                },
               }} 
               onClick={() => document.getElementById('about-image')?.click()}
             >
@@ -597,7 +636,6 @@ export default function SettingsTab() {
                     alt="About"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     onError={(e) => {
-                      console.error('Failed to load about image:', aboutImagePreview);
                       (e.target as HTMLImageElement).src = '/images/placeholder.jpg';
                     }}
                   />
@@ -656,13 +694,10 @@ export default function SettingsTab() {
             rows={4}
           />
         </Box>
-      </Paper>
+      </SectionCard>
 
       {/* Contact Section */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          Contact
-        </Typography>
+      <SectionCard title="Contact" icon={<ContactPage />}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField
             fullWidth
@@ -671,6 +706,9 @@ export default function SettingsTab() {
             onChange={(e) => handleChange('contact', 'email', e.target.value)}
             size="small"
             sx={textFieldStyle}
+            InputProps={{
+              startAdornment: <Email sx={{ mr: 1, color: isDark ? '#a8b2d1' : '#666', fontSize: '1rem' }} />,
+            }}
           />
           <TextField
             fullWidth
@@ -679,6 +717,9 @@ export default function SettingsTab() {
             onChange={(e) => handleChange('contact', 'phone', e.target.value)}
             size="small"
             sx={textFieldStyle}
+            InputProps={{
+              startAdornment: <Phone sx={{ mr: 1, color: isDark ? '#a8b2d1' : '#666', fontSize: '1rem' }} />,
+            }}
           />
           <TextField
             fullWidth
@@ -687,15 +728,29 @@ export default function SettingsTab() {
             onChange={(e) => handleChange('contact', 'location', e.target.value)}
             size="small"
             sx={textFieldStyle}
+            InputProps={{
+              startAdornment: <LocationOn sx={{ mr: 1, color: isDark ? '#a8b2d1' : '#666', fontSize: '1rem' }} />,
+            }}
           />
         </Box>
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 3 }} />
         <Typography variant="subtitle2" sx={{ mb: 2, color: isDark ? '#a8b2d1' : '#666' }}>
           Social Links
         </Typography>
         {settings.contact.socialLinks.map((link, index) => (
-          <Card key={index} sx={{ mb: 2, p: 2, backgroundColor: isDark ? '#1e293b' : '#f8fafc', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr auto' }, gap: 2, alignItems: 'center' }}>
+          <Card key={index} sx={{ 
+            mb: 2, 
+            p: 2, 
+            borderRadius: 2,
+            backgroundColor: isDark ? '#1e293b' : '#f8fafc', 
+            border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' 
+          }}>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr auto' }, 
+              gap: 2, 
+              alignItems: 'center' 
+            }}>
               <TextField
                 label="Platform"
                 value={link.platform}
@@ -724,16 +779,22 @@ export default function SettingsTab() {
             </Box>
           </Card>
         ))}
-        <Button startIcon={<Add />} onClick={addSocialLink} sx={{ color: isDark ? '#00ffff' : '#007bff' }}>
+        <Button 
+          startIcon={<Add />} 
+          onClick={addSocialLink} 
+          sx={{ 
+            color: isDark ? '#00ffff' : '#007bff',
+            '&:hover': {
+              backgroundColor: isDark ? '#00ffff20' : '#007bff10',
+            },
+          }}
+        >
           Add Social Link
         </Button>
-      </Paper>
+      </SectionCard>
 
       {/* Stats Section */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          Stats
-        </Typography>
+      <SectionCard title="Stats" icon={<Assessment />}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField
             fullWidth
@@ -772,13 +833,10 @@ export default function SettingsTab() {
             sx={textFieldStyle}
           />
         </Box>
-      </Paper>
+      </SectionCard>
 
       {/* SEO Section */}
-      <Paper sx={{ p: 3, mb: 4, backgroundColor: isDark ? '#0f172a80' : 'white', border: isDark ? '1px solid #334155' : '1px solid #e5e7eb' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, color: isDark ? '#00ffff' : '#007bff' }}>
-          SEO
-        </Typography>
+      <SectionCard title="SEO" icon={<Search />}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
           <TextField
             fullWidth
@@ -803,6 +861,7 @@ export default function SettingsTab() {
             onChange={(e) => handleChange('seo', 'keywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
             size="small"
             sx={textFieldStyle}
+            helperText="Comma separated keywords"
           />
           <TextField
             fullWidth
@@ -813,30 +872,42 @@ export default function SettingsTab() {
             sx={textFieldStyle}
           />
         </Box>
-      </Paper>
+      </SectionCard>
 
       {/* Save Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-          startIcon={<Save />}
-          onClick={handleSubmit}
-          disabled={saving}
-          sx={{
-            background: isDark ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
-            borderRadius: 1,
-            '&:hover': {
-              background: isDark ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient(135deg, #0056b3, #004080)',
-            },
-            '&.Mui-disabled': {
-              background: isDark ? '#334155' : '#e5e7eb',
-              color: isDark ? '#94a3b8' : '#94a3b8',
-            },
-          }}
-        >
-          {saving ? <CircularProgress size={24} color="inherit" /> : 'Save Settings'}
-        </Button>
-      </Box>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <Save />}
+            onClick={handleSubmit}
+            disabled={saving}
+            sx={{
+              background: isDark ? 'linear-gradient(135deg, #00ffff, #00b3b3)' : 'linear-gradient(135deg, #007bff, #0056b3)',
+              borderRadius: 1,
+              px: 4,
+              py: 1.5,
+              fontSize: '1rem',
+              '&:hover': {
+                background: isDark ? 'linear-gradient(135deg, #00b3b3, #008080)' : 'linear-gradient(135deg, #0056b3, #004080)',
+                boxShadow: isDark 
+                  ? '0 4px 12px rgba(0, 255, 255, 0.3)'
+                  : '0 4px 12px rgba(37, 99, 235, 0.3)',
+              },
+              '&.Mui-disabled': {
+                background: isDark ? '#334155' : '#e5e7eb',
+                color: isDark ? '#94a3b8' : '#94a3b8',
+              },
+            }}
+          >
+            {saving ? 'Saving...' : 'Save Settings'}
+          </Button>
+        </Box>
+      </motion.div>
 
       {/* Snackbars */}
       <Snackbar
@@ -845,17 +916,36 @@ export default function SettingsTab() {
         onClose={() => setError('')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert severity="error" onClose={() => setError('')}>
+        <Alert 
+          severity="error" 
+          onClose={() => setError('')}
+          sx={{ 
+            borderRadius: 1,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            backgroundColor: isDark ? '#0f172a' : 'white',
+            color: isDark ? '#ff0000' : '#dc3545'
+          }}
+        >
           {error}
         </Alert>
       </Snackbar>
+      
       <Snackbar
         open={!!success}
         autoHideDuration={6000}
         onClose={() => setSuccess('')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert severity="success" onClose={() => setSuccess('')}>
+        <Alert 
+          severity="success" 
+          onClose={() => setSuccess('')}
+          sx={{ 
+            borderRadius: 1,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            backgroundColor: isDark ? '#0f172a' : 'white',
+            color: isDark ? '#00ff00' : '#28a745'
+          }}
+        >
           {success}
         </Alert>
       </Snackbar>
