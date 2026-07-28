@@ -23,6 +23,13 @@ import {
   FaBars,
   FaTimes,
   FaCog,
+  // Added for the new sections:
+  FaGraduationCap, // for 'education'
+  FaBriefcase,     // for 'experience'
+  FaTools,         // for 'skills'
+  FaFolderOpen,    // for 'work'
+  FaQuoteRight,    // for 'testimonials'
+  FaNewspaper,     // for 'blog'
 } from 'react-icons/fa';
 
 const Navbar: React.FC = () => {
@@ -63,11 +70,16 @@ const Navbar: React.FC = () => {
   };
 
   const navLinks = [
-    { href: '/', label: 'Home', icon: <FaHome /> },
-    { href: '/about', label: 'About', icon: <FaInfoCircle /> },
-    { href: '/menu', label: 'Food Menu', icon: <FaUtensils /> },
-    { href: '/contact', label: 'Contact', icon: <FaEnvelope /> },
-  ];
+  { href: '#home', label: 'Home', icon: <FaHome /> },
+  { href: '#about', label: 'About', icon: <FaUser /> },
+  { href: '#education', label: 'Education', icon: <FaGraduationCap /> },
+  { href: '#experience', label: 'Experience', icon: <FaBriefcase /> },
+  { href: '#skills', label: 'Skills', icon: <FaTools /> },
+  { href: '#work', label: 'Work', icon: <FaFolderOpen /> },
+  { href: '#testimonials', label: 'Testimonials', icon: <FaQuoteRight /> },
+  { href: '#blog', label: 'Blog', icon: <FaNewspaper /> },
+  { href: '#contact', label: 'Contact', icon: <FaEnvelope /> },
+];
 
   const isActive = (href: string) => pathname === href;
 
@@ -86,8 +98,8 @@ const Navbar: React.FC = () => {
           <Link href="/" className="flex items-center space-x-2 md:space-x-3 group">
             <div className="relative w-10 h-10 md:w-12 md:h-12 transition-transform duration-300 group-hover:scale-105">
               <Image
-                src="/images/logo1.jpeg"
-                alt="Zelalem Cafterya Logo"
+                src="/images/logo1.avif"
+                alt="Amlakie Logo"
                 fill
                 className="object-contain rounded-lg"
                 sizes="48px"
@@ -99,7 +111,7 @@ const Navbar: React.FC = () => {
                 ? 'text-[#ccd6f6] group-hover:text-[#00ffff]' 
                 : 'text-gray-800 group-hover:text-blue-600'
             }`}>
-              Zelalem Cafterya
+              Amlakie
             </span>
           </Link>
 
