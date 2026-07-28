@@ -38,7 +38,7 @@ interface User {
 const allMenuItems: MenuItem[] = [
   { 
     name: 'Home', 
-    href: '/admin', 
+    href: '/',
     icon: Home,
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat', 'Abalat-Guday', 'Mezmur', 'Timhrt', 'Muyana-Terado', 'Bachna-Department', 'Audite', 'manager', 'chef', 'waiter', 'customer'] 
   },
@@ -102,42 +102,6 @@ const allMenuItems: MenuItem[] = [
     icon: Settings,
     allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat', 'manager'],
     parent: 'Portfolio'
-  },
-  { 
-    name: 'Food', 
-    href: '/admin/foods', 
-    icon: FileText,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Secretary', 'Limat', 'manager'] 
-  },
-  { 
-    name: 'Menu Approve', 
-    href: '/admin/food-approve', 
-    icon: FileText,
-    allowedRoles: ['admin', 'Priesedant', 'Vice-Priesedant', 'accountant', 'Secretary', 'Limat', 'manager', 'chef']
-  },
-  { 
-    name: 'Manager Order', 
-    href: '/admin/manager/orders', 
-    icon: Wallet,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'manager'] 
-  },
-  { 
-    name: 'Chef Order', 
-    href: '/admin/chef/orders', 
-    icon: Wallet,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'chef'] 
-  },
-  { 
-    name: 'Waiter Order', 
-    href: '/admin/waiter/orders', 
-    icon: Wallet,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'waiter'] 
-  },
-  { 
-    name: 'My Orders', 
-    href: '/admin/customer/my-orders',
-    icon: Wallet,
-    allowedRoles: ['admin', 'Priesedant', 'accountant', 'Limat', 'user', 'customer']
   },
   { 
     name: 'Feedback', 
