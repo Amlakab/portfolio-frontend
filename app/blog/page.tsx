@@ -20,10 +20,11 @@ import { AiFillGithub, AiFillLinkedin } from 'react-icons/ai';
 import { RiArticleLine } from 'react-icons/ri';
 import { MdRecordVoiceOver } from 'react-icons/md';
 import portfolioApi from '@/lib/api/portfolio';
-import styles from '../page.module.css';
+import styles from './page.module.css';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import Navbar from '@/components/ui/Navbar';
-
+import toast, { Toaster } from 'react-hot-toast';
+import { useMediaQuery } from '@mui/material';
 
 // ===== Types =====
 interface Project {
@@ -123,8 +124,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   },
   about: {
     title: 'About Me',
-    description: "I'm a passionate and self-motivated Software Developer with a strong foundation in both front-end and back-end technologies. I love creating beautiful, functional, and user-friendly applications that solve real-world problems.",
-    image: '/images/about4.jpg'
+    description: "I am a proactive Full-Stack Developer with a solid engineering foundation and hands-on experience across the entire software development lifecycle. I specialize in building efficient, scalable, and secure web and mobile applications using JavaScript, TypeScript, Python, React.js, Next.js, Spring Boot, and Node.js. My journey is driven by continuous learning and a strong focus on cybersecurity ensuring that every platform. I build is not only user-friendly but also resilient against modern security threats. I thrive in collaborative environments and enjoy translating complex business challenges into elegant, impactful software solutions.",
+    image: '/images/about5.jpg'
   },
   contact: {
     email: 'amlakieab23@gmail.com',
@@ -144,13 +145,263 @@ const DEFAULT_SETTINGS: SiteSettings = {
   }
 };
 
+
+// Projects data matching Project interface
+const DEFAULT_PROJECTS: Project[] = [
+
+  {
+    _id: "1",
+    title: "Cafeteria Management",
+    description: "Comprehensive system for managing cafeteria operations, including menu planning, inventory management, and order processing.",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "MongoDB", "Express.js"],
+    image: "/images/cafeteria-management.png",
+    github: "https://github.com/Amlakab/CMS-frontend",
+    liveUrl: "https://cms-frontend-swart.vercel.app/menu",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "2",
+    title: "House Rental Management",
+    description: "Comprehensive system for managing rental properties, tenant applications, and lease agreements.",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "MongoDB", "Express.js"],
+    image: "/images/house.png",
+    github: "https://github.com/Amlakab/houses-rental-management-system-frontend",
+    liveUrl: "https://houses-rental-management-system-fro-sigma.vercel.app/",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "3",
+    title: "Gibi Gubaye Management System (GGMS)",
+    description: "A centralized church management platform designed for tepi gibi gubaye",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "MongoDB", "Express.js"],
+    image: "/images/gibii.png",
+    github: "https://github.com/Amlakab/giby-gubaye-frontend",
+    liveUrl: "https://giby-gubaye-management.vercel.app/",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "4",
+    title: "Online Bingo Game",
+    description: "A fun and interactive bingo game built with modern web technologies.",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "MongoDB", "Express.js"],
+    image: "/images/bingo.png",
+    github: "https://github.com/Amlakab/addis-bingo-game-client",
+    liveUrl: "https://addis-bingo-game-client.vercel.app/",
+    category: "Web",
+    featured: true
+  },
+  {
+    _id: "5",
+    title: "E-commerce Platform",
+    description: "Amazon-like shopping with AR product preview",
+    tags: ["Next.js", "Typescript", "Node.js", "MongoDB"],
+    image: "/images/ecommerce.png",
+    github: "https://github.com/Amlakab/Amlakie-e-commerce",
+    liveUrl: "https://amlakie-e-commerce.vercel.app/",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "6",
+    title: "Web Application Firewall (WAF)",
+    description: "Comprehensive system for managing web application security, including threat detection and response.",
+    tags: ["React", "TypeScript", "Tailwind CSS", "PostgreSQL", "Django"],
+    image: "/images/web-application-firewall.png",
+    github: "https://github.com/itzlead12/INSA_CTC_Cyber_Security_Group_28",
+    liveUrl: "",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "7",
+    title: "My Portfolio Website",
+    description: "Customizable Dinamic portfolio with interactive elements",
+    tags: ["React", "JavaScript", "Bootstrap"],
+    image: "/images/portfolio.png",
+    github: "https://github.com/Amlakab/portfolio-frontend",
+    liveUrl: "https://portfolio-frontendd-pied.vercel.app/",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "8",
+    title: "Transport Management",
+    description: "Fleet tracking with real-time logistics optimization",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "MYSQL", "Spring Boot"],
+    image: "/images/tms.png",
+    github: "https://github.com/Amlakab/TMS",
+    liveUrl: "",
+    category: "Full Stack",
+    featured: true
+  },
+  {
+    _id: "9",
+    title: "Hospital Management System",
+    description: "Comprehensive system for patient records, appointments, and billing with AI diagnostics integration",
+    tags: ["HTML", "CSS", "Javascript", "MYSQL", "Bootstrap", "PHP"],
+    image: "/images/hospital-system.png",
+    github: "https://github.com/Amlakab/HIMS",
+    liveUrl: "",
+    category: "Web",
+    featured: true
+  },
+  {
+    _id: "10",
+    title: "Spinner Game",
+    description: "A fun and interactive spinner game built with modern web technologies.",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "MongoDB", "Express.js"],
+    image: "/images/spinner.png",
+    github: "https://github.com/Amlakab/lottery-frontend",
+    liveUrl: "",
+    category: "Web",
+    featured: true
+  },
+  {
+    _id: "11",
+    title: "Scientific Calculator",
+    description: "Advanced calculator with 3D graphing capabilities",
+    tags: ["Next.js", "Typescript", "Tailwind CSS"],
+    image: "/images/calculator2.png",
+    github: "https://github.com/Amlakab/Amlakie-Calculator",
+    liveUrl: "https://my-calculator-nu-two.vercel.app/",
+    category: "Frontend",
+    featured: true
+  },
+  {
+    _id: "12",
+    title: "INSA Website",
+    description: "Interactive institutional portal with virtual campus tour",
+    tags: ["React", "JavaScript", "MYSQL", "Bootstrap"],
+    image: "/images/insa-website.png",
+    github: "https://github.com/Amlakab/INSA-WEB",
+    liveUrl: "https://insa-web.vercel.app/",
+    category: "Full Stack",
+    featured: true
+  },
+];
+
+// Experience data matching Experience interface
+const DEFAULT_EXPERIENCE: Experience[] = [
+  {
+    _id: "1",
+    role: "Cyber Security Trainee",
+    company: "Information Network Security Administration (INSA)",
+    period: "08/2025 – Present",
+    description: "Trained in network security, threat detection, and ethical hacking principles through hands-on lab simulations. Engineered a Web Application Firewall (WAF) to detect, block, and mitigate real-time web application security threats, including OWASP Top 10 vulnerabilities."
+  },
+  {
+    _id: "2",
+    role: "Full-Stack Developer",
+    company: "Information Network Security Administration (INSA)",
+    period: "03/2025 – 07/2025",
+    description: "Designed and developed core enterprise modules, including a Transport Management System to efficiently handle vehicle routing, driver assignments, and fleet logistics. Built and maintained full-stack web applications using Spring Boot, Next.js, and MySQL, architecting RESTful APIs for seamless frontend-backend integration. Collaborated across the full software development lifecycle, contributing to database design, debugging, testing, and deployment following industry best practices."
+  },
+  {
+    _id: "3",
+    role: "Freelance Full-Stack Developer",
+    company: "Self-Employed",
+    period: "01/2026 – Present",
+    description: "Developed responsive full-stack applications with secure authentication, database integration, and user-friendly interfaces. Successfully delivered 10+ software projects, including Hospital Management Systems, House Rental Management Systems (HRMS), Gaming System, Gibi Gubaye Management System (GGMS), Cafeteria Management System (CMS), eCommerce platforms, and other custom web applications."
+  }
+];
+
+// Education data matching Education interface
+const DEFAULT_EDUCATION: Education[] = [
+  {
+    _id: "1",
+    degree: "Bachelor of Software Engineering",
+    institution: "Mizan-Tepi University | Tepi Campus",
+    year: "2021 - 2025 | Pursuing",
+    description: "Pursuing a comprehensive program focused on software engineering principles with strong emphasis on modern web development practices and technologies."
+  },
+  {
+    _id: "2",
+    degree: "Internship in Software Engineering",
+    institution: "INSA (Information Network Security Agency)",
+    year: "March 2025 - June 2025 | Pursuing",
+    description: "Hands-on internship focused on practical experience in software development, system security, and real-world application of engineering concepts."
+  }
+];
+
+// Testimonial data matching Testimonial interface
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+  {
+    _id: "1",
+    name: "Sarah Johnson",
+    role: "CEO, TechCorp",
+    content: "Amlakie delivered our project ahead of schedule with exceptional quality. His attention to detail and problem-solving skills are remarkable.",
+    avatar: "/images/testimonial1.jpeg",
+    rating: 5
+  },
+  {
+    _id: "2",
+    name: "Michael Chen",
+    role: "CTO, InnovateX",
+    content: "Working with Amlakie was a pleasure. He transformed our complex requirements into a beautiful, functional application with stunning animations.",
+    avatar: "/images/testimonial2.jpeg",
+    rating: 5
+  },
+  {
+    _id: "3",
+    name: "Fatima Al-Mansoori",
+    role: "Product Manager, NexaSoft",
+    content: "Amlakie showed outstanding initiative and professionalism. His ability to adapt quickly and contribute clean, scalable code made him a valuable team asset.",
+    avatar: "/images/testimonial3.jpeg",
+    rating: 5
+  },
+  {
+    _id: "4",
+    name: "David Kim",
+    role: "Lead Engineer, CodeSphere",
+    content: "What impressed us most was Amlakie's ability to combine technical depth with UI elegance. His contributions significantly enhanced our project's UX.",
+    avatar: "/images/testimonial4.jpeg",
+    rating: 5
+  }
+];
+
+// Blog Post data matching BlogPost interface
+const DEFAULT_BLOG_POSTS: BlogPost[] = [
+  {
+    _id: "2",
+    title: "The Future of Web Development",
+    excerpt: "Exploring emerging technologies that will shape the next decade of web development including Web3 and AI integration.",
+    date: "April 28, 2023",
+    image: "/images/blog2.jpg",
+    category: "Web"
+  }
+];
+
+  const DEFAULT_STATS = [
+    { number: "25+", label: "Projects Completed" },
+    { number: "15", label: "Happy Clients" },
+    { number: "50K+", label: "Lines of Code" },
+    { number: "3", label: "Years Experience" }
+  ];
+
+
 const DEFAULT_SKILLS: Skill[] = [
-  { _id: '1', name: 'React', value: 90, icon: 'FaReact', category: 'frontend' },
-  { _id: '2', name: 'TypeScript', value: 85, icon: 'SiTypescript', category: 'frontend' },
-  { _id: '3', name: 'Tailwind CSS', value: 80, icon: 'SiTailwindcss', category: 'frontend' },
-  { _id: '4', name: 'Node.js', value: 80, icon: 'FaNodeJs', category: 'backend' },
-  { _id: '5', name: 'MongoDB', value: 75, icon: 'SiMongodb', category: 'backend' },
-  { _id: '6', name: 'PostgreSQL', value: 70, icon: 'SiPostgresql', category: 'backend' }
+  // Frontend
+  { _id: '1', name: 'HTML', value: 100, icon: 'FaHtml5', category: 'frontend' },
+  { _id: '2', name: 'CSS', value: 95, icon: 'FaCss3Alt', category: 'frontend' },
+  { _id: '3', name: 'JavaScript', value: 95, icon: 'FaJs', category: 'frontend' },
+  { _id: '4', name: 'React.js', value: 85, icon: 'FaReact', category: 'frontend' },
+  { _id: '5', name: 'Next.js', value: 85, icon: 'SiNextdotjs', category: 'frontend' },
+  { _id: '6', name: 'Tailwind CSS', value: 85, icon: 'SiTailwindcss', category: 'frontend' },
+  { _id: '7', name: 'Bootstrap', value: 85, icon: 'SiBootstrap', category: 'frontend' },
+  { _id: '8', name: 'TypeScript', value: 75, icon: 'SiTypescript', category: 'frontend' },
+
+  // Backend
+  { _id: '9', name: 'PHP', value: 90, icon: 'SiPhp', category: 'backend' },
+  { _id: '10', name: 'MySQL', value: 85, icon: 'SiMysql', category: 'backend' },
+  { _id: '11', name: 'Spring Boot', value: 80, icon: 'SiSpringboot', category: 'backend' },
+  { _id: '12', name: 'Java', value: 80, icon: 'FaJava', category: 'backend' },
+  { _id: '13', name: 'Node.js', value: 75, icon: 'FaNodeJs', category: 'backend' },
+  { _id: '14', name: 'MongoDB', value: 65, icon: 'SiMongodb', category: 'backend' },
+  { _id: '15', name: 'PostgreSQL', value: 65, icon: 'SiPostgresql', category: 'backend' },
+  { _id: '16', name: 'Python', value: 60, icon: 'FaPython', category: 'backend' },
 ];
 
 // ===== Helper functions - SAME as SettingsTab =====
@@ -407,15 +658,17 @@ const Portfolio = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [educations, setEducations] = useState<Education[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [projects, setProjects] = useState<Project[]>(DEFAULT_PROJECTS);
+  const [experiences, setExperiences] = useState<Experience[]>(DEFAULT_EXPERIENCE);
+  const [educations, setEducations] = useState<Education[]>(DEFAULT_EDUCATION);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(DEFAULT_BLOG_POSTS);
   const [frontendSkills, setFrontendSkills] = useState<Skill[]>(DEFAULT_SKILLS.filter(s => s.category === 'frontend'));
   const [backendSkills, setBackendSkills] = useState<Skill[]>(DEFAULT_SKILLS.filter(s => s.category === 'backend'));
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+
   const [loading, setLoading] = useState(true);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
 
 
@@ -749,16 +1002,16 @@ const { names, subtitles } = getNamesAndSubtitles();
     if (isInView) controls.start('visible');
   }, [isInView, controls]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: colors.primary }} />
-          <p style={{ color: colors.textPrimary }}>Loading blog posts...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
+  //       <div className="text-center">
+  //         <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: colors.primary }} />
+  //         <p style={{ color: colors.textPrimary }}>Loading blog posts...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className={styles.portfolioApp} style={{ backgroundColor: colors.bgPrimary, color: colors.textPrimary, transition: 'background-color 0.3s ease, color 0.3s ease' }}>
