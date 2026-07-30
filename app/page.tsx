@@ -364,6 +364,14 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 
 // Blog Post data matching BlogPost interface
 const DEFAULT_BLOG_POSTS: BlogPost[] = [
+ {
+      _id: "1",
+      title: "Building Scalable React Applications",
+      excerpt: "Learn the best practices for creating React apps that can grow with your user base while maintaining performance.",
+      date: "May 15, 2023",
+      image: "/images/blog1.jpg",
+      category: "React"
+    },
   {
     _id: "2",
     title: "The Future of Web Development",
