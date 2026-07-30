@@ -154,7 +154,7 @@ const DEFAULT_PROJECTS: Project[] = [
     title: "Cafeteria Management",
     description: "Comprehensive system for managing cafeteria operations, including menu planning, inventory management, and order processing.",
     tags: ["Next.js", "TypeScript", "Tailwind CSS", "MongoDB", "Express.js"],
-    image: "/images/cafeteria-management.png",
+    image: "/images/cafteria.png",
     github: "https://github.com/Amlakab/CMS-frontend",
     liveUrl: "https://cms-frontend-swart.vercel.app/menu",
     category: "Full Stack",
