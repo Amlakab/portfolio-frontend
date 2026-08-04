@@ -303,7 +303,7 @@ const DEFAULT_EXPERIENCE: Experience[] = [
     _id: "3",
     role: "Freelance Full-Stack Developer",
     company: "Self-Employed",
-    period: "01/2026 – Present",
+    period: "10/2025 – Present",
     description: "Developed responsive full-stack applications with secure authentication, database integration, and user-friendly interfaces. Successfully delivered 10+ software projects, including Hospital Management Systems, House Rental Management Systems (HRMS), Gaming System, Gibi Gubaye Management System (GGMS), Cafeteria Management System (CMS), eCommerce platforms, and other custom web applications."
   }
 ];

@@ -310,19 +310,12 @@ const DEFAULT_EXPERIENCE: Experience[] = [
 
 // Education data matching Education interface
 const DEFAULT_EDUCATION: Education[] = [
-  {
+ {
     _id: "1",
     degree: "Bachelor of Software Engineering",
     institution: "Mizan-Tepi University | Tepi Campus",
-    year: "2021 - 2025 | Pursuing",
-    description: "Pursuing a comprehensive program focused on software engineering principles with strong emphasis on modern web development practices and technologies."
-  },
-  {
-    _id: "2",
-    degree: "Internship in Software Engineering",
-    institution: "INSA (Information Network Security Agency)",
-    year: "March 2025 - June 2025 | Pursuing",
-    description: "Hands-on internship focused on practical experience in software development, system security, and real-world application of engineering concepts."
+    year: "2022 - 2026",
+    description: "CGPA: 3.96. Key coursework: Networking, Web Development (Server-Side Rendering), MobileApp Development, Operating Systems, and Cyber security. Exit Exam: 80% Passed"
   }
 ];
 
