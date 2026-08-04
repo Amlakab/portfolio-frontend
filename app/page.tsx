@@ -116,8 +116,8 @@ interface SiteSettings {
 // ===== DEFAULT FALLBACK DATA =====
 const DEFAULT_SETTINGS: SiteSettings = {
   hero: {
-    title: 'Amlakie Abebaw',
-    subtitle: 'Software Developer',
+    title: 'Amlakie, Developer, Designer',
+    subtitle: 'Software Engineer, Full Stack Developer, UI/UX Expert',
     description: 'I build exceptional digital experiences with modern web technologies.',
     profileImages: ['/images/profile1.jpg', '/images/profile2.jpg'],
     resumeUrl: '/documents/Amlakie_Abebaw_Resume.pdf'
